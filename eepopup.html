@@ -1,0 +1,67 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
+<html>
+  <head>
+    <title>Encrypt Everything!</title>
+    <style>
+      body {
+        font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+        font-size: 100%;
+      }
+      #status {
+        /* avoid an excessively wide status text */
+        white-space: pre;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 400px;
+      }
+      #body {
+        height: 350px;
+        width: 300px;
+        padding: 16px;
+      }
+      .login-label {
+        font-weight: bold;
+      }
+      .login-field {
+        position: absolute;
+        width: 80%;
+        font-family: "Times New Roman", Times, sans-serif;
+        font-size: 16px;
+        border: 3px solid #003da5;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+      }
+
+    </style>
+
+    <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
+     -->
+    <script src="jsencrypt.js"></script>
+    <script src="popup.js"></script>
+  </head>
+  <body>
+    <div id="body">
+      <div id="header">Encrypt Everything!</div><br><br>
+      <div id="status"></div><br>
+
+      <label class="login-label">Username:</label><br>
+      <input id="username" class="login-field" type="text">
+      <br><br><br>
+
+      <label class="login-label">Password:</label><br>
+      <input id="password" class="login-field" type="password">
+    </div>
+  </body>
+</html>
+
