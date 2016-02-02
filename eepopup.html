@@ -1,9 +1,5 @@
 <!doctype html>
-<!--
- This page is shown when the extension button is clicked, because the
- "browser_action" field in manifest.json contains the "default_popup" key with
- value "popup.html".
- -->
+
 <html>
   <head>
     <title>Encrypt Everything!</title>
@@ -13,7 +9,6 @@
         font-size: 100%;
       }
       #status {
-        /* avoid an excessively wide status text */
         white-space: pre;
         text-overflow: ellipsis;
         overflow: hidden;
@@ -39,14 +34,41 @@
         padding-bottom: 6px;
       }
 
+      #buttons {
+        position: absolute;
+        padding-left: 17%;
+      }
+      .action-buttons {
+        -moz-box-shadow:inset 0px 39px 0px -24px #d14a43;
+        -webkit-box-shadow:inset 0px 39px 0px -24px #d14a43;
+        box-shadow:inset 0px 39px 0px -24px #d14a43;
+        background-color:#cc4e47;
+        -moz-border-radius:4px;
+        -webkit-border-radius:4px;
+        border-radius:4px;
+        border:1px solid #ffffff;
+        display:inline-block;
+        cursor:pointer;
+        color:#ffffff;
+        font-family:Arial;
+        font-size:18px;
+        font-weight:bold;
+        padding:6px 52px;
+        text-decoration:none;
+        text-shadow:0px 1px 0px #c2352b;
+      }
+      .action-buttons:hover {
+        background-color:#c73d36;
+        text-shadow:0px 1px 0px #444444;
+      }
+      .action-buttons:active {
+        position:relative;
+        top:1px;
+      }
+
+
     </style>
 
-    <!--
-      - JavaScript and HTML must be in separate files: see our Content Security
-      - Policy documentation[1] for details and explanation.
-      -
-      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
-     -->
     <script src="jsencrypt.js"></script>
     <script src="popup.js"></script>
   </head>
@@ -55,12 +77,20 @@
       <div id="header">Encrypt Everything!</div><br><br>
       <div id="status"></div><br>
 
-      <label class="login-label">Username:</label><br>
+      <div id="buttons">
+        <a href="#" id="encrypt" class="action-buttons">Encrypt</a><br><br>
+        <a href="#" id="decrypt" class="action-buttons">Decrypt</a><br><br>
+        <a href="#" id="import" class="action-buttons">&nbsp;Import&nbsp;</a>
+      </div>
+
+<!--       <br><br><br> <br><br><br> <br><br><br>
+
+      <label class="login-label">Email:</label><br>
       <input id="username" class="login-field" type="text">
       <br><br><br>
 
       <label class="login-label">Password:</label><br>
-      <input id="password" class="login-field" type="password">
+      <input id="password" class="login-field" type="password"> -->
     </div>
   </body>
 </html>

@@ -30,7 +30,15 @@ function renderStatus(statusText) {
   document.getElementById('status').textContent = statusText;
 }
 
+function openKeyManagerTab() {
+  chrome.tabs.create({'url': chrome.extension.getURL('import.html')}, function(tab) {
+    //tab?
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById("import").onclick = openKeyManagerTab;
+
   renderStatus("Initializing......");
 
   var keygen = new JSEncrypt({default_key_size: 1024});
