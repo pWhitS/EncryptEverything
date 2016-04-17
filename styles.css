@@ -30,8 +30,9 @@ h1
 }
 .content
 {
-    overflow:hidden;
-    background: aqua;   
+    overflow: hidden;
+    background: #F2F2F2;
+    border-top: 1px solid #000000;   
 }
 .side-button
 {

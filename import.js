@@ -5,6 +5,10 @@ var dPrivateKey = 2;
 var gKeyType = dPublicKey;
 
 
+function close_window() {
+	window.close();
+}
+
 function showPublicInputFields() {
 	document.getElementById("pubkey-label").style.visibility = "visible";
 	document.getElementById("pubkey-name").style.visibility = "visible";
@@ -24,6 +28,7 @@ function showPrivateInputFields() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-	document.getElementById("import-pub").onclick = showPublicInputFields;  
-	document.getElementById("import-pri").onclick = showPrivateInputFields;
+	//document.getElementById("import-pub").onclick = showPublicInputFields;  
+	//document.getElementById("import-pri").onclick = showPrivateInputFields;
+	document.getElementById("close_window").onclick = close_window;
 });
