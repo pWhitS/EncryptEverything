@@ -37,13 +37,18 @@ function openKeyManagerTab() {
 }
 
 function decryptSelectedText() {
-  var prikey = document.getElementById("sec").value;
+  //localStorage.setItem("EE-Private-Key", document.getElementById("sec").value);
+  var prikey = localStorage.getItem("EE-Private-Key");
+
 
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();    
     var p = RSADecrypt(buf, prikey);
     
-    if (p != false && p != "" && p != null) {
+    if (p == null && buf == "") {
+      swal("Error", "No selected text..", "error");
+    }
+    else if (p != false && p != "" && p != null) {
       swal({
         title: "",
         text: "Decrypted Message",
@@ -63,9 +68,15 @@ function decryptSelectedText() {
 }
 
 
+function encryptSelectedText() {
+  
+}
+
+
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById("import").onclick = openKeyManagerTab;
   document.getElementById("decrypt").onclick = decryptSelectedText;
+  document.getElementById("encrypt").onclick = encryptSelectedText;
 
   renderStatus("Initializing......");
 
