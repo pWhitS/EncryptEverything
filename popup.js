@@ -86,10 +86,10 @@ function createRandomString(length) {
 1. Get RSA public key from local storage
 2. Generate random string (password) for PBKDF2
 3. Get the selected text and encrypt it with AES
-4. Encrypt with RSA:
+4. Encrypt with RSA: (All will be 172 bytes each)
   - password
-  - IV
   - random salt
+  - IV
 5. Append message ciphertext to the end
 **/ 
 function encryptSelectedText() {  
@@ -101,12 +101,12 @@ function encryptSelectedText() {
     var ct = sjcl.encrypt(password, buf);
 
     var ciphertext = ct.match(/"ct":"([^"]*)"/)[1];
-    var iv = ct.match(/"iv":"([^"]*)"/)[1];
     var salt = ct.match(/"salt":"([^"]*)"/)[1];
+    var iv = ct.match(/"iv":"([^"]*)"/)[1];
 
     var message = RSAEncrypt(password, pubkey); //172
-    message += RSAEncrypt(iv, pubkey) //172
     message += RSAEncrypt(salt, pubkey) //172
+    message += RSAEncrypt(iv, pubkey) //172
     message += ciphertext;
 
     console.log(message);
