@@ -73,7 +73,8 @@
     <link rel="stylesheet" type="text/css" href="sweetalert/dist/sweetalert.css">
 
     <script src="sweetalert/dist/sweetalert.min.js"></script>
-    <script src="jsencrypt.js"></script>
+    <script src="js-rsa/jsencrypt.js"></script>
+    <script src="sjcl/sjcl.js"></script>
     <script src="popup.js"></script>
 
   </head>
@@ -83,15 +84,30 @@
       <div id="status"></div><br>
 
       <textarea id="sec" col="10" row="5">
-          -----BEGIN RSA PRIVATE KEY-----
-MIIBOQIBAAJAa/8qXSzFww46A27Hlh3hbvoWgMtcwTf3jbB6fvIx5Zo/w5lLP9l3
-Xep8pb5d9gk6JqVX//d3Q6IZjtWjXL20EQIDAQABAkAraIa4qNRckI1U7+QdPKlu
-F+uPnS4NI9fHBdZWzDauGIozdZp0Wmw5Cwr1GiE4j59mgzHnGMdaVIQWfwLF8o+B
-AiEAqYqObsPzzUbalrP2JmYxVyqcotUgvbuRkNZOaesbotkCIQCjEgj1El34vGW2
-AyXcESCtYH8IrwpJKFIq4+tobq9n+QIgJUh/AgS9fIr0TufMXa1jdFO+lmBgDtlM
-rZkzLT+ymCECIHxYpkfqZ4nib1SpddcnoFlUucmvYBKFEpLuFXYe4NZRAiEAnT61
-WYwrMye6ez3vcf3PercPjx5NZe0UOzAnUzevMMA=
+        -----BEGIN RSA PRIVATE KEY-----
+MIICXgIBAAKBgQCCvo/X/t/SiaajAYSGsiQ5r4mW/pkm7pYPotHEy32lrpT4MjNL
+3CkVMpwWXIEK0KEDykdnD5iUzmFqAxdZ/fUEUlEY1eELoKNIdVG1NpnBsUjws2wj
+sduBtDxbBYL07skMYIc0b04m+12AtYDPqQAQz+SWY1KPHrgCl0amcdDF8QIDAQAB
+AoGAPhPW3nqQsTlUWn8k+oNouc8D6CKYeyi7LU9khCkOTnV3G+VR/8nX48202NUx
+G/51BQStJFz+WGEpVZmEI+F1zNq7ZNpfJbQdNAme0HHuxYcLrxzsRyIGk0SW8wXe
+BGkJF+xO70ELQblKtJSNhMV+TlJRb2rHKwXnZDIFZvVB1eUCQQC6ADI1WUvbpl1C
+L9kI7bht3eJIgZrqIKfdAboQ6idLLu5Ols1itQ7clpoukEJAXUsCYoNyvIt90knu
+d4y/a0sLAkEAs/LR9nYgT7RUn0T0utqhVT6QNdLybdPVftpG8fjeKq1ed8QYbpos
+gq6qLgmolzdvs7GYa9zsqHiUuG1a+yQwcwJBALAraWLAPio/64q5+Q4M4qclBqN4
+JjtlTLj2Xr6QmUELpWlISiYYqYfjGQvLVQTTmC0dE7WDwXcdyyqTjvrq67sCQQCT
+tp6d5uetJcVVHECcZb2LgRjV5fx1JS+auskD9htBAyGJxKGdoNcqywANXIZU4v/B
+jOYmnKpzvM+v+Kx3fYR7AkEAuBY/6zxhyLbytRzllJHrgAUdMa47wPMO7YJvkMUC
+Bnf1QUVlZhicUDqb2b4tN1LBF5ViGqJyj3xw+so8/HZrLw==
 -----END RSA PRIVATE KEY-----
+      </textarea>
+
+      <textarea id="pub" col="10" row="5">
+        -----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCCvo/X/t/SiaajAYSGsiQ5r4mW
+/pkm7pYPotHEy32lrpT4MjNL3CkVMpwWXIEK0KEDykdnD5iUzmFqAxdZ/fUEUlEY
+1eELoKNIdVG1NpnBsUjws2wjsduBtDxbBYL07skMYIc0b04m+12AtYDPqQAQz+SW
+Y1KPHrgCl0amcdDF8QIDAQAB
+-----END PUBLIC KEY-----
       </textarea>
 
 

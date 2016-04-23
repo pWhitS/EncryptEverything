@@ -69,7 +69,7 @@ function decryptSelectedText() {
 
 
 function encryptSelectedText() {
-  
+  var pubkey = document.getElementById("pub").value;
 }
 
 
