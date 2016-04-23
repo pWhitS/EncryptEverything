@@ -68,8 +68,49 @@ function decryptSelectedText() {
 }
 
 
-function encryptSelectedText() {
+function createRandomString(length) {
+  var arr = new Uint32Array(parseInt(length));
+  window.crypto.getRandomValues(arr);
+  var str = ""
+
+  for (var i=0; i < arr.length; ++i) {
+    str += String.fromCharCode(arr[i] % 128);
+  }
+
+  return window.btoa(str);
+}
+
+
+//Fucntion encrypts highlighted text
+/**
+1. Get RSA public key from local storage
+2. Generate random string (password) for PBKDF2
+3. Get the selected text and encrypt it with AES
+4. Encrypt with RSA:
+  - password
+  - IV
+  - random salt
+5. Append message ciphertext to the end
+**/ 
+function encryptSelectedText() {  
   var pubkey = document.getElementById("pub").value;
+  var password = createRandomString(30); 
+
+  getSelectedText(function(selectedText) {
+    var buf = selectedText.toString();
+    var ct = sjcl.encrypt(password, buf);
+
+    var ciphertext = ct.match(/"ct":"([^"]*)"/)[1];
+    var iv = ct.match(/"iv":"([^"]*)"/)[1];
+    var salt = ct.match(/"salt":"([^"]*)"/)[1];
+
+    var message = RSAEncrypt(password, pubkey); //172
+    message += RSAEncrypt(iv, pubkey) //172
+    message += RSAEncrypt(salt, pubkey) //172
+    message += ciphertext;
+
+    console.log(message);
+  });
 }
 
 
