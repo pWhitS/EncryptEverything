@@ -1,17 +1,4 @@
 
-function RSAEncrypt(buffer, pubkey) {
-  var enc = new JSEncrypt();
-  enc.setPublicKey(pubkey);
-  var ciphertext = enc.encrypt(buffer);
-  return ciphertext;
-}
-
-function RSADecrypt(buffer, prikey) {
-  var dec = new JSEncrypt();
-  dec.setPrivateKey(prikey);
-  var plaintext = dec.decrypt(buffer);
-  return plaintext;
-}
 
 function getSelectedText(callback) {
   var queryInfo = {
@@ -32,9 +19,25 @@ function renderStatus(statusText) {
 
 function openKeyManagerTab() {
   chrome.tabs.create({'url': chrome.extension.getURL('import.html')}, function(tab) {
-    //tab?
+    //tab code?
   });
 }
+
+//--- RSA Encryption Wrappers ---//
+function RSAEncrypt(buffer, pubkey) {
+  var enc = new JSEncrypt();
+  enc.setPublicKey(pubkey);
+  var ciphertext = enc.encrypt(buffer);
+  return ciphertext;
+}
+
+function RSADecrypt(buffer, prikey) {
+  var dec = new JSEncrypt();
+  dec.setPrivateKey(prikey);
+  var plaintext = dec.decrypt(buffer);
+  return plaintext;
+}
+
 
 function decryptSelectedText() {
   //localStorage.setItem("EE-Private-Key", document.getElementById("sec").value);
@@ -44,24 +47,31 @@ function decryptSelectedText() {
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();
     var rsaBlock = 172;
+    console.log(buf);
 
-    if (buf.length < rsaBlock*2) {
-      console.log("Error 1");
+    //Selected text must be at least 2 RSA blocks
+    if (buf.length < rsaBlock*2) { 
+      swal("Error", "No selected text!", "error");
       return;
     }
 
-    var enc_key = buf.substring(0,rsaBlock);
-    var enc_iv = buf.substring(rsaBlock,rsaBlock*2);
+    //Break up the pieces of encrypted the blob
+    var enc_key = buf.substring(0, rsaBlock);
+    var enc_iv = buf.substring(rsaBlock, rsaBlock*2);
     var ciphertext_str = buf.substring(rsaBlock*2);
     var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
     
-    var key_str = RSADecrypt(enc_key, prikey);
+    //decrypt RSA encrypted AES key and IV
+    var aes_key_str = RSADecrypt(enc_key, prikey);
     var iv_str = RSADecrypt(enc_iv, prikey);
 
-    var key = sjcl.codec.base64.toBits(key_str);
+    //convert strings to bitArrays for decrypt operation
+    var aeskey = sjcl.codec.base64.toBits(aes_key_str);
     var iv = sjcl.codec.base64.toBits(iv_str);
-    console.log(key);
+    console.log(aeskey);
 
+    //These are parameters to the decrypt function. 
+    //Must match parameters given to encrypt
     var ct_json = {};
     ct_json["cipher"] = "aes";
     ct_json["ct"] = ciphertext;
@@ -72,32 +82,14 @@ function decryptSelectedText() {
     ct_json["adata"] = [];
     ct_json["ts"] = 64;
     ct_json["mode"] = "ccm";
-    console.log(ct_json);
+    var ct_json_str = sjcl.json.encode(ct_json); //Convert JSON to string
 
-    var ct_json_str = sjcl.json.encode(ct_json);
-    var plaintext = sjcl.decrypt(key, ct_json_str);
+    var plaintext = sjcl.decrypt(aeskey, ct_json_str); //Do the decryption
+    if (plaintext == null || plaintext.length == 0) {
+      swal("Decryption Error", "Something went wrong...", "error");
+      return;
+    }
     console.log(plaintext);
-//    var p = RSADecrypt(buf, prikey);
-//    
-//    if (p == null && buf == "") {
-//      swal("Error", "No selected text..", "error");
-//    }
-//    else if (p != false && p != "" && p != null) {
-//      swal({
-//        title: "",
-//        text: "Decrypted Message",
-//        type: "input",
-//        inputValue: p,
-//        closeOnConfirm: true
-//      },
-//      function(inval) {
-//        return false;
-//      });
-//    }
-//    else {
-//      swal("Unable To Decrypt", "Something went wrong...", "error");
-//    }
-
   });
 }
 
@@ -114,34 +106,44 @@ function decryptSelectedText() {
 **/ 
 function encryptSelectedText() {  
   var pubkey = document.getElementById("pub").value; //replace with localStorage
-  var key = sjcl.random.randomWords(8);
-  console.log(key);
-  var key_str = sjcl.codec.base64.fromBits(key);
+  if (pubkey == null || pubkey.length == 0) {
+    swal("Error", "No public key found!", "error");
+    return;
+  }
+
+  var aeskey = sjcl.random.randomWords(8); //8 * 32 == 256 bits
+  var aes_key_str = sjcl.codec.base64.fromBits(aeskey);
 
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();
-    var params = {};
-    params["ks"] = 256;
+    if (buf == null || buf.length == 0) {
+      swal("Error", "No text selected!", "error");
+      return;
+    }
 
-    var result_str = sjcl.encrypt(key, buf, params);
-    var result_obj = sjcl.json.decode(result_str);
+    var params = {};
+    params["ks"] = 256; //AES-256 key
+
+    var result_str = sjcl.encrypt(aeskey, buf, params); //do encryption
+    var result_obj = sjcl.json.decode(result_str); //get JSON from returned string
     console.log(result_obj);
 
-    var ciphertext = sjcl.codec.base64.fromBits(result_obj.ct);
+    var ciphertext = sjcl.codec.base64.fromBits(result_obj.ct); 
     var iv = sjcl.codec.base64.fromBits(result_obj.iv);
-
-    var enc_key = RSAEncrypt(key_str, pubkey); //172
+    
+    //Encrypt AES key and IV with RSA
+    var enc_key = RSAEncrypt(aes_key_str, pubkey); //172
     var enc_iv = RSAEncrypt(iv, pubkey); //172
 
-    console.log("ENCRYPTED KEY: " + enc_key + " LEN: " + enc_key.length);
-    console.log("ENCRYPTED IV: " + enc_iv + " LEN: " + enc_iv.length);
-    console.log("CIPHERTEXT: " + ciphertext + " LEN: " + ciphertext.length);
-    
+    //Construct the hybrid encrypted message
     var message = "";
     message += enc_key;
     message += enc_iv;
     message += ciphertext;
 
+    console.log("ENCRYPTED KEY: " + enc_key + " LEN: " + enc_key.length);
+    console.log("ENCRYPTED IV: " + enc_iv + " LEN: " + enc_iv.length);
+    console.log("CIPHERTEXT: " + ciphertext + " LEN: " + ciphertext.length);
     console.log(message);
   });
 }
