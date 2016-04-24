@@ -43,16 +43,25 @@ function decryptSelectedText() {
 
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();
-    var enc_key = buf.substring(0,172);
-    var enc_iv = buf.substring(172,344);
-    var ciphertext_str = buf.substring(344);
+    var rsaBlock = 172;
+
+    if (buf.length < rsaBlock*2) {
+      console.log("Error 1");
+      return;
+    }
+
+    var enc_key = buf.substring(0,rsaBlock);
+    var enc_iv = buf.substring(rsaBlock,rsaBlock*2);
+    var ciphertext_str = buf.substring(rsaBlock*2);
     var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
     
     var key_str = RSADecrypt(enc_key, prikey);
     var iv_str = RSADecrypt(enc_iv, prikey);
+
     var key = sjcl.codec.base64.toBits(key_str);
-    console.log(key);
     var iv = sjcl.codec.base64.toBits(iv_str);
+    console.log(key);
+
     var ct_json = {};
     ct_json["cipher"] = "aes";
     ct_json["ct"] = ciphertext;
@@ -64,6 +73,7 @@ function decryptSelectedText() {
     ct_json["ts"] = 64;
     ct_json["mode"] = "ccm";
     console.log(ct_json);
+
     var ct_json_str = sjcl.json.encode(ct_json);
     var plaintext = sjcl.decrypt(key, ct_json_str);
     console.log(plaintext);
@@ -113,17 +123,21 @@ function encryptSelectedText() {
     var buf = selectedText.toString();
     var params = {};
     params["ks"] = 256;
+
     var result_str = sjcl.encrypt(key, buf, params);
     var result_obj = sjcl.json.decode(result_str);
     console.log(result_obj);
+
     var ciphertext = sjcl.codec.base64.fromBits(result_obj.ct);
     var iv = sjcl.codec.base64.fromBits(result_obj.iv);
 
     var enc_key = RSAEncrypt(key_str, pubkey); //172
-    console.log("ENCRYPTED KEY: " + enc_key + " LEN: " + enc_key.length);
     var enc_iv = RSAEncrypt(iv, pubkey); //172
+
+    console.log("ENCRYPTED KEY: " + enc_key + " LEN: " + enc_key.length);
     console.log("ENCRYPTED IV: " + enc_iv + " LEN: " + enc_iv.length);
     console.log("CIPHERTEXT: " + ciphertext + " LEN: " + ciphertext.length);
+    
     var message = "";
     message += enc_key;
     message += enc_iv;
