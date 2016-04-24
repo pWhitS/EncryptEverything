@@ -38,46 +38,57 @@ function openKeyManagerTab() {
 
 function decryptSelectedText() {
   //localStorage.setItem("EE-Private-Key", document.getElementById("sec").value);
-  var prikey = localStorage.getItem("EE-Private-Key");
-
+//  var prikey = localStorage.getItem("EE-Private-Key");
+  var prikey = document.getElementById("sec").value;
 
   getSelectedText(function(selectedText) {
-    var buf = selectedText.toString();    
-    var p = RSADecrypt(buf, prikey);
+    var buf = selectedText.toString();
+    var enc_key = buf.substring(0,172);
+    var enc_iv = buf.substring(172,344);
+    var ciphertext_str = buf.substring(344);
+    var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
     
-    if (p == null && buf == "") {
-      swal("Error", "No selected text..", "error");
-    }
-    else if (p != false && p != "" && p != null) {
-      swal({
-        title: "",
-        text: "Decrypted Message",
-        type: "input",
-        inputValue: p,
-        closeOnConfirm: true
-      },
-      function(inval) {
-        return false;
-      });
-    }
-    else {
-      swal("Unable To Decrypt", "Something went wrong...", "error");
-    }
+    var key_str = RSADecrypt(enc_key, prikey);
+    var iv_str = RSADecrypt(enc_iv, prikey);
+    var key = sjcl.codec.base64.toBits(key_str);
+    console.log(key);
+    var iv = sjcl.codec.base64.toBits(iv_str);
+    var ct_json = {};
+    ct_json["cipher"] = "aes";
+    ct_json["ct"] = ciphertext;
+    ct_json["iter"] = 1000;
+    ct_json["iv"] = iv;
+    ct_json["ks"] = 256;
+    ct_json["v"] = 1;
+    ct_json["adata"] = [];
+    ct_json["ts"] = 64;
+    ct_json["mode"] = "ccm";
+    console.log(ct_json);
+    var ct_json_str = sjcl.json.encode(ct_json);
+    var plaintext = sjcl.decrypt(key, ct_json_str);
+    console.log(plaintext);
+//    var p = RSADecrypt(buf, prikey);
+//    
+//    if (p == null && buf == "") {
+//      swal("Error", "No selected text..", "error");
+//    }
+//    else if (p != false && p != "" && p != null) {
+//      swal({
+//        title: "",
+//        text: "Decrypted Message",
+//        type: "input",
+//        inputValue: p,
+//        closeOnConfirm: true
+//      },
+//      function(inval) {
+//        return false;
+//      });
+//    }
+//    else {
+//      swal("Unable To Decrypt", "Something went wrong...", "error");
+//    }
 
   });
-}
-
-
-function createRandomString(length) {
-  var arr = new Uint32Array(parseInt(length));
-  window.crypto.getRandomValues(arr);
-  var str = ""
-
-  for (var i=0; i < arr.length; ++i) {
-    str += String.fromCharCode(arr[i] % 128);
-  }
-
-  return window.btoa(str);
 }
 
 
@@ -94,19 +105,28 @@ function createRandomString(length) {
 **/ 
 function encryptSelectedText() {  
   var pubkey = document.getElementById("pub").value;
-  var password = createRandomString(30); 
+  var key = sjcl.random.randomWords(8);
+  console.log(key);
+  var key_str = sjcl.codec.base64.fromBits(key);
 
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();
-    var ct = sjcl.encrypt(password, buf);
+    var params = {};
+    params["ks"] = 256;
+    var result_str = sjcl.encrypt(key, buf, params);
+    var result_obj = sjcl.json.decode(result_str);
+    console.log(result_obj);
+    var ciphertext = sjcl.codec.base64.fromBits(result_obj.ct);
+    var iv = sjcl.codec.base64.fromBits(result_obj.iv);
 
-    var ciphertext = ct.match(/"ct":"([^"]*)"/)[1];
-    var salt = ct.match(/"salt":"([^"]*)"/)[1];
-    var iv = ct.match(/"iv":"([^"]*)"/)[1];
-
-    var message = RSAEncrypt(password, pubkey); //172
-    message += RSAEncrypt(salt, pubkey) //172
-    message += RSAEncrypt(iv, pubkey) //172
+    var enc_key = RSAEncrypt(key_str, pubkey); //172
+    console.log("ENCRYPTED KEY: " + enc_key + " LEN: " + enc_key.length);
+    var enc_iv = RSAEncrypt(iv, pubkey); //172
+    console.log("ENCRYPTED IV: " + enc_iv + " LEN: " + enc_iv.length);
+    console.log("CIPHERTEXT: " + ciphertext + " LEN: " + ciphertext.length);
+    var message = "";
+    message += enc_key;
+    message += enc_iv;
     message += ciphertext;
 
     console.log(message);
