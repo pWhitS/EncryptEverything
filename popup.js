@@ -105,16 +105,15 @@ function decryptSelectedText() {
 //Fucntion encrypts highlighted text
 /**
 1. Get RSA public key from local storage
-2. Generate random string (password) for PBKDF2
+2. Generate random string for AES key
 3. Get the selected text and encrypt it with AES
 4. Encrypt with RSA: (All will be 172 bytes each)
-  - password
-  - random salt
+  - AES key
   - IV
 5. Append message ciphertext to the end
 **/ 
 function encryptSelectedText() {  
-  var pubkey = document.getElementById("pub").value;
+  var pubkey = document.getElementById("pub").value; //replace with localStorage
   var key = sjcl.random.randomWords(8);
   console.log(key);
   var key_str = sjcl.codec.base64.fromBits(key);
