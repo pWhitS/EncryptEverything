@@ -42,7 +42,7 @@ function RSADecrypt(buffer, prikey) {
 function decryptSelectedText() {
   //localStorage.setItem("EE-Private-Key", document.getElementById("sec").value);
 //  var prikey = localStorage.getItem("EE-Private-Key");
-  var prikey = document.getElementById("sec").value;
+  var prikey = document.getElementById("sec").value; //replace with localStorage
 
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();
