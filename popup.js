@@ -111,6 +111,8 @@ function encryptSelectedText() {
     return;
   }
 
+  
+
   var aeskey = sjcl.random.randomWords(8); //8 * 32 == 256 bits
   var aes_key_str = sjcl.codec.base64.fromBits(aeskey);
 
