@@ -67,6 +67,10 @@
         top:1px;
       }
 
+      #invis {
+        opacity: 0;
+        filter: alpha(opacity=0);
+      }
 
     </style>
 
@@ -110,8 +114,9 @@ Y1KPHrgCl0amcdDF8QIDAQAB
 -----END PUBLIC KEY-----
       </textarea>
 
-      <textarea id="invis" col="0" row = "0">
-      </textarea>
+      <div id="invisDiv">
+        <input id="invis" value="" readonly>
+      </div>
 
       <div id="buttons">
         <a href="#" id="encrypt" class="action-buttons">Encrypt</a><br><br>

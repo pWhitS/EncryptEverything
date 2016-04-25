@@ -104,10 +104,10 @@ function decryptSelectedText() {
     },
     function(isCopy) {
       if (isCopy) {
-        var invisibleTextArea = document.getElementById("invis");
-        invisibleTextArea.value = plaintext;
-        invisibleTextArea.focus(); //Moves cursor to textarea
-        invisibleTextArea.select(); //Selects (Highlights) text in textarea
+        var invisibleInputField = document.getElementById("invis");
+        invisibleInputField.value = plaintext;
+        invisibleInputField.focus(); //Moves cursor to textarea
+        invisibleInputField.select(); //Selects (Highlights) text in textarea
         document.execCommand("copy");
       }
     });
@@ -170,11 +170,11 @@ function encryptSelectedText() {
     console.log(message);
 
     //set the invisible element's value to the encrypted message
-    var invisibleTextArea = document.getElementById("invis");
-    invisibleTextArea.value = message;
+    var invisibleInputField = document.getElementById("invis");
+    invisibleInputField.value = message;
 
-    invisibleTextArea.focus(); //Moves cursor to textarea
-    invisibleTextArea.select(); //Selects (Highlights) text in textarea
+    invisibleInputField.focus(); //Moves cursor to textarea
+    invisibleInputField.select(); //Selects (Highlights) text in textarea
 
     //Copy selected encrypted text from invisible textarea to the clipboard
     document.execCommand("copy"); 
