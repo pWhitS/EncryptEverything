@@ -9,6 +9,7 @@ function getSelectedText(callback) {
   chrome.tabs.executeScript({
     code: "window.getSelection().toString();"
   }, function(selection) {
+    //console.log(selection);
     callback(selection);
   });
 }
@@ -111,8 +112,6 @@ function encryptSelectedText() {
     return;
   }
 
-  
-
   var aeskey = sjcl.random.randomWords(8); //8 * 32 == 256 bits
   var aes_key_str = sjcl.codec.base64.fromBits(aeskey);
 
@@ -147,6 +146,16 @@ function encryptSelectedText() {
     console.log("ENCRYPTED IV: " + enc_iv + " LEN: " + enc_iv.length);
     console.log("CIPHERTEXT: " + ciphertext + " LEN: " + ciphertext.length);
     console.log(message);
+
+    //set the invisible element's value to the encrypted message
+    var invisibleTextArea = document.getElementById("invis");
+    invisibleTextArea.value = message;
+
+    invisibleTextArea.focus(); //Moves cursor to textarea
+    invisibleTextArea.select(); //Selects (Highlights) text in textarea
+
+    //Copy selected encrypted text from invisible textarea to the clipboard
+    document.execCommand("copy"); 
   });
 }
 
