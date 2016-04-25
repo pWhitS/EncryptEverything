@@ -178,6 +178,13 @@ function encryptSelectedText() {
 
     //Copy selected encrypted text from invisible textarea to the clipboard
     document.execCommand("copy"); 
+
+    swal({
+      title: "Successful Encryption",
+      text: "Ciphertext copied to clipboard",
+      timer: 2000,
+      showConfirmButton: true
+    })
   });
 }
 
