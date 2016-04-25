@@ -90,6 +90,28 @@ function decryptSelectedText() {
       swal("Decryption Error", "Something went wrong...", "error");
       return;
     }
+
+    //Display as popup with options: close, copy to clipboard
+    swal({
+      title: "Decryted Text",
+      text: plaintext,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Copy",
+      showCancelButton: true,
+      cancelButtonText: "Close",
+      closeOnCancel: true,
+      closeOnConfirm: true
+    },
+    function(isCopy) {
+      if (isCopy) {
+        var invisibleTextArea = document.getElementById("invis");
+        invisibleTextArea.value = plaintext;
+        invisibleTextArea.focus(); //Moves cursor to textarea
+        invisibleTextArea.select(); //Selects (Highlights) text in textarea
+        document.execCommand("copy");
+      }
+    });
+
     console.log(plaintext);
   });
 }
