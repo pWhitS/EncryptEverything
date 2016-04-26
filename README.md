@@ -6,7 +6,7 @@ Symmetric Cryptography and Integrity:
 https://github.com/bitwiseshiftleft/sjcl
 
 Configured with: <br>
-./configure --without-all --with-aes --with-sha256 --with-random --with-hmac --with-codecBytes
+./configure --without-all --with-aes --with-ctr --with-sha256 --with-random --with-hmac --with-codecBytes
 <br><br>
 
 Asymteric Cryptography:
