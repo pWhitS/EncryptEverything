@@ -154,6 +154,7 @@ function encryptSelectedText() {
 
     var params = {};
     params["ks"] = 256; //AES-256 key
+    //params["mode"] = "ctr";
 
     var result_str = sjcl.encrypt(aeskey, buf, params); //do encryption
     var result_obj = sjcl.json.decode(result_str); //get JSON from returned string
