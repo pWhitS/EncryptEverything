@@ -12,8 +12,29 @@
    <title>Encrypt Everything!</title>
 </head>
 
-<body>
+<body onLoad="init()">
 
+<script>
+function addKey(){
+  if (localStorage.keyList) {
+    //alert(localStorage.getItem("keyList"));
+    var keyList = JSON.parse(localStorage.getItem("keyList"));
+  } else {
+    console.log("No keyList found.  Creating an empty one.")
+    var keyList = {};
+  }
+  var name = document.getElementById("name").value;
+  var key = document.getElementById("key").value;
+  keyList[name] = key;
+  localStorage.setItem("keyList", JSON.stringify(keyList));
+  console.log("Added " +name+ " with key "+key+"\nThere are now " + Object.keys(keyList).length + " keys.");
+  //alert(JSON.stringify(keyList));
+}
+function init() {
+  localStorage.removeItem("keyList");
+  console.log("Cleared keys");
+}
+</script>
 <h1>Encrypt Everything! Key Manager</h1>
 <div class="container">    
     <div class="sideBar">
@@ -36,11 +57,19 @@
       </ul>
     </div>
     <div class="content">
+      <section>
+	<div id="influads_block" class="influads_block"> </div>
+                <h1>Add public key</h1>
+                <form id="localStorageTest" method="post" action="">
+                        <label>Name:</label><br>
+                        <input type="text" name="name" id="name" class="stored" value="" /><br><br>
 
-
-
+                        <label>Public Key:</label><br>
+                        <textarea name="key" id="key" class="stored"></textarea><br>
+                        <input onclick="addKey()" type="button" value="Add" />
+                </form>
+      </section>
     </div>
 </div>
-
 </body>
 <html>
