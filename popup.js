@@ -90,11 +90,15 @@ function decryptSelectedText() {
       swal("Decryption Error", "Something went wrong...", "error");
       return;
     }
+    
+    //truncate plaintext that gets displayed in the popup if too big (>150 chars)
+    var popup_plaintext = plaintext.substring(0,150) + " ...";
 
     //Display as popup with options: close, copy to clipboard
+    //TODO: Somehow, in copying the plaintext to the clipboard, the newline characters are lost; I suspect this has to do with writing it to the invisibleInputField first; should be fixed
     swal({
       title: "Decryted Text",
-      text: plaintext,
+      text: popup_plaintext,
       confirmButtonColor: "#DD6B55",
       confirmButtonText: "Copy",
       showCancelButton: true,
