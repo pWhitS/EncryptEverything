@@ -95,13 +95,13 @@ function decryptSelectedText() {
     if (plaintext.length > 150) {
       var popup_plaintext = plaintext.substring(0,150) + " ...";
     } else {
-      popup_plaintext = plaintext;
+      var popup_plaintext = plaintext;
     }
 
     //Display as popup with options: close, copy to clipboard
     //TODO: Somehow, in copying the plaintext to the clipboard, the newline characters are lost; I suspect this has to do with writing it to the invisibleInputField first; should be fixed
     swal({
-      title: "Decrypted Text",
+      title: "Decryted Text",
       text: popup_plaintext,
       confirmButtonColor: "#DD6B55",
       confirmButtonText: "Copy",
