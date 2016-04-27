@@ -40,6 +40,7 @@
         padding-left: 17%;
       }
       .action-buttons {
+        width: 4em;
         -moz-box-shadow:inset 0px 39px 0px -24px #d14a43;
         -webkit-box-shadow:inset 0px 39px 0px -24px #d14a43;
         box-shadow:inset 0px 39px 0px -24px #d14a43;
@@ -57,6 +58,7 @@
         padding:6px 52px;
         text-decoration:none;
         text-shadow:0px 1px 0px #c2352b;
+        text-align: center;
       }
       .action-buttons:hover {
         background-color:#c73d36;
@@ -85,9 +87,8 @@
   <body>
     <div id="body">
       <div id="header">Encrypt Everything!</div><br><br>
-      <div id="status"></div><br>
 
-      <textarea id="sec" col="10" row="5">
+      <textarea id="sec" cols="0" rows="0">
         -----BEGIN RSA PRIVATE KEY-----
 MIICXgIBAAKBgQCCvo/X/t/SiaajAYSGsiQ5r4mW/pkm7pYPotHEy32lrpT4MjNL
 3CkVMpwWXIEK0KEDykdnD5iUzmFqAxdZ/fUEUlEY1eELoKNIdVG1NpnBsUjws2wj
@@ -105,7 +106,7 @@ Bnf1QUVlZhicUDqb2b4tN1LBF5ViGqJyj3xw+so8/HZrLw==
 -----END RSA PRIVATE KEY-----
       </textarea>
 
-      <textarea id="pub" col="10" row="5">
+      <textarea id="pub" cols="0" rows="0">
         -----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCCvo/X/t/SiaajAYSGsiQ5r4mW
 /pkm7pYPotHEy32lrpT4MjNL3CkVMpwWXIEK0KEDykdnD5iUzmFqAxdZ/fUEUlEY
@@ -119,6 +120,7 @@ Y1KPHrgCl0amcdDF8QIDAQAB
       <div id="buttons">
         <a href="#" id="encrypt" class="action-buttons">Encrypt</a><br><br>
         <a href="#" id="decrypt" class="action-buttons">Decrypt</a><br><br>
+        <a href="#" id="verify" class="action-buttons">Verify</a><br><br>
         <a href="#" id="import" class="action-buttons">Manage</a>
       </div>
 

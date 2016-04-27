@@ -40,6 +40,13 @@ function RSADecrypt(buffer, prikey) {
 }
 
 
+//Fucntion decrypts highlighted text
+/**
+1. Get RSA private key from local storage
+2. Decrypt AES key and IV
+3. Decrypt AES ciphertext
+4. Display text to user, allow copy to clipboard
+**/
 function decryptSelectedText() {
   //localStorage.setItem("EE-Private-Key", document.getElementById("sec").value);
 //  var prikey = localStorage.getItem("EE-Private-Key");
@@ -198,12 +205,17 @@ function encryptSelectedText() {
 }
 
 
+function verifySelectedtext() {
+  return;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById("import").onclick = openKeyManagerTab;
   document.getElementById("decrypt").onclick = decryptSelectedText;
   document.getElementById("encrypt").onclick = encryptSelectedText;
+  document.getElementById("verify").onclick = verifySelectedtext;
 
-  renderStatus("Initializing......");
+  //renderStatus("Initializing......");
 
   // var keygen = new JSEncrypt({default_key_size: 1024});
   // keygen.getKey();
