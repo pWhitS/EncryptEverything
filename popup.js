@@ -39,6 +39,7 @@ function RSADecrypt(buffer, prikey) {
   return plaintext;
 }
 
+var G_RSA_BLOCK_SIZE = 172; //not sure if this is 172 for all key sizes
 
 //Fucntion decrypts highlighted text
 /**
@@ -54,19 +55,18 @@ function decryptSelectedText() {
 
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();
-    var rsaBlock = 172;
     console.log(buf);
 
     //Selected text must be at least 2 RSA blocks
-    if (buf.length < rsaBlock*2) { 
+    if (buf.length < G_RSA_BLOCK_SIZE*2) { 
       swal("Error", "No selected text!", "error");
       return;
     }
 
     //Break up the pieces of encrypted the blob
-    var enc_key = buf.substring(0, rsaBlock);
-    var enc_iv = buf.substring(rsaBlock, rsaBlock*2);
-    var ciphertext_str = buf.substring(rsaBlock*2);
+    var enc_key = buf.substring(0, G_RSA_BLOCK_SIZE);
+    var enc_iv = buf.substring(G_RSA_BLOCK_SIZE, G_RSA_BLOCK_SIZE*2);
+    var ciphertext_str = buf.substring(G_RSA_BLOCK_SIZE*2);
     var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
     
     //decrypt RSA encrypted AES key and IV
@@ -205,8 +205,57 @@ function encryptSelectedText() {
 }
 
 
+//Assumes ciphertext structure:
+/*
+172 - AES key
+172 - AES IV
+XXX - Message
+172 - Signature of sha256
+*/
+
 function verifySelectedtext() {
-  return;
+  var pubkey = document.getElementById("pub").value; //replace with localStorage
+  if (pubkey == null || pubkey.length == 0) {
+    swal("Error", "No public key found!", "error");
+    return;
+  }
+
+  getSelectedText(function(selectedText) {
+    var buf = selectedText.toString();
+    var clength = buf.length;
+    // if (buf == null || clength == 0) {
+    //   swal("Error", "No text selected!", "error");
+    //   return;
+    // }
+
+    var signature = buf.substring(clength - G_RSA_BLOCK_SIZE);
+    var ciphertext = buf.substring(0, clength - G_RSA_BLOCK_SIZE)
+
+    var sig_hash = RSADecrypt(signature, pubkey);
+    var verify_hash = sjcl.hash.sha256.hash(ciphertext);
+    verify_hash = sjcl.codec.base64.fromBits(verify_hash);
+
+    console.log("SIG: " + signature);
+    console.log("CIPHERTEXT: " + ciphertext);
+    console.log(sig_hash + " -- " + verify_hash);
+
+    if (sig_hash == verify_hash) {
+      swal({
+        title: "Verified!",
+        text: "",
+        timer: 2000,
+        showConfirmButton: true
+      });
+    }
+    else {
+      swal({
+        title: "Verification Failed!",
+        text: "Message is from an untrusted sender",
+        showConfirmButton: true,
+        type: "error"
+      });
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
