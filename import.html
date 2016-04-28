@@ -44,28 +44,17 @@
 
                         <label>Public Key:</label><br>
                         <textarea name="pubKey" id="pubKey" class="stored"></textarea><br>
-                        <input onclick="addPubKey()" type="button" value="Add Public Key" />
+                        <input id="add-pub-key" type="button" value="Add Public Key" />
                 </form>
       </section>
 
       <section>
 	<h1>Remove public key</h1>
-	<!--<select id="deleteKey">
+	<select id="deleteKey">
 	  <option>Pick key to delete</option>
-	  <script>
-	    var select = document.getElementById("deleteKey");
-            var keyList = JSON.parse(localStorage.getItem("keyList"));
-	    var keys = Object.keys(keyList);
-	    for(var i = 0; i < keys.length; i++) {
-              var opt = keys[i];
-              var el = document.createElement("option");
-              el.textContent = opt;
-              el.value = opt;
-              select.appendChild(el);
-          }
-        </script>
-	</select> !-->
-	<input onclick="delKey()" type="button" value="Delete key" />
+
+	</select> 
+	<input id="del-key" type="button" value="Delete key" />
       </section>
 
       <section>
