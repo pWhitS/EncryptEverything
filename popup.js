@@ -260,10 +260,10 @@ function closeKeySelect() {
 
 //Assumes ciphertext structure:
 /*
-172 - AES key
-172 - AES IV
+344 - AES key
+344 - AES IV
 XXX - Message
-172 - Signature of sha256
+344 - Signature over sha256
 */
 
 function verifySelectedtext() {
