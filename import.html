@@ -71,7 +71,7 @@ function init() {
     </div>
     <div class="content">
       <section>
-	<div id="influads_block" class="influads_block"> </div>
+	<div> </div>
                 <h1>Add public key</h1>
                 <form id="localStorageTest" method="post" action="">
                         <label>Name:</label><br>
@@ -82,16 +82,9 @@ function init() {
                         <input onclick="addPubKey()" type="button" value="Add Public Key" />
                 </form>
       </section>
+
       <section>
-	<div id="influads_block" class="influads_block"> </div>
-                <h1>Add private key</h1>
-                <form id="localStorageTest" method="post" action="">
-                        <label>You Private Key:</label><br>
-                        <textarea name="privKey" id="privKey" class="stored"></textarea><br>
-                        <input onclick="addPrivKey()" type="button" value="Add Your Private Key" />
-                </form>
-      </section>
-      <section>
+	<h1>Remove public key</h1>
 	<select id="deleteKey">
 	  <option>Pick key to delete</option>
 	  <script>
@@ -108,6 +101,16 @@ function init() {
         </script>
 	</select>
 	<input onclick="delKey()" type="button" value="Delete key" />
+      </section>
+
+      <section>
+	<div id="influads_block" class="influads_block"> </div>
+                <h1>Add private key</h1>
+                <form id="localStorageTest" method="post" action="">
+                        <label>You Private Key:</label><br>
+                        <textarea name="privKey" id="privKey" class="stored"></textarea><br>
+                        <input onclick="addPrivKey()" type="button" value="Add Your Private Key" />
+                </form>
       </section>
     </div>
 </div>
