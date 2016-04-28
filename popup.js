@@ -72,6 +72,11 @@ function decryptSelectedText() {
     //decrypt RSA encrypted AES key and IV
     var aes_key_str = RSADecrypt(enc_key, prikey);
     var iv_str = RSADecrypt(enc_iv, prikey);
+    //Check if decryption failed
+    if (aes_key_str == null || iv_str == null) {
+      swal("Decryption Failed", "The message could not be decrypted", "error");
+      return;
+    }
 
     //convert strings to bitArrays for decrypt operation
     var aeskey = sjcl.codec.base64.toBits(aes_key_str);
