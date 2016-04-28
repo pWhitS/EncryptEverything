@@ -51,8 +51,8 @@ var G_RSA_BLOCK_SIZE = 344; //scales linearly with key size. 2048 key - 344
 **/
 function decryptSelectedText() {
   //localStorage.setItem("EE-Private-Key", document.getElementById("sec").value);
-//  var prikey = localStorage.getItem("EE-Private-Key");
-  var prikey = document.getElementById("sec").value; //replace with localStorage
+  var prikey = localStorage.getItem("EE-Private-Key");
+  //var prikey = document.getElementById("sec").value; //replace with localStorage
 
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();
@@ -68,15 +68,21 @@ function decryptSelectedText() {
     var enc_key = buf.substring(0, G_RSA_BLOCK_SIZE);
     var enc_iv = buf.substring(G_RSA_BLOCK_SIZE, G_RSA_BLOCK_SIZE*2);
     var ciphertext_str = buf.substring(G_RSA_BLOCK_SIZE*2);
-    var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
     
     //decrypt RSA encrypted AES key and IV
     var aes_key_str = RSADecrypt(enc_key, prikey);
     var iv_str = RSADecrypt(enc_iv, prikey);
 
+    //Check if decryption failed
+    if (aes_key_str == null || iv_str == null) {
+      swal("Decryption Failed", "The message could not be decrypted", "error");
+      return;
+    }
+
     //convert strings to bitArrays for decrypt operation
     var aeskey = sjcl.codec.base64.toBits(aes_key_str);
     var iv = sjcl.codec.base64.toBits(iv_str);
+    var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
     console.log(aeskey);
 
     //These are parameters to the decrypt function. 
@@ -143,8 +149,7 @@ function decryptSelectedText() {
   - IV
 5. Append message ciphertext to the end
 **/ 
-function encryptSelectedText() {  
-  var pubkey = document.getElementById("pub").value; //replace with localStorage
+function encryptSelectedText(pubkey) {  
   if (pubkey == null || pubkey.length == 0) {
     swal("Error", "No public key found!", "error");
     return;
@@ -206,12 +211,60 @@ function encryptSelectedText() {
 }
 
 
+function showPublicKeys() {
+  var selectDiv = document.getElementById("invis-select");
+  var select = document.getElementById("public-key-select");
+  var buttons = document.getElementById("buttons");
+
+  var keyList = JSON.parse(localStorage.getItem("keyList"));
+  if (keyList == null) {
+    swal("Error", "No public keys...", "error");
+    return;
+  }
+  var keys = Object.keys(keyList);
+
+  selectDiv.style.visibility = "visible";
+  buttons.style.visibility = "hidden";
+
+  select.options.length = 0;
+  var blankOption = document.createElement("option");
+  blankOption.textContent = "Select Public Key"; 
+  blankOption.value = "NONE";
+  select.appendChild(blankOption);
+
+  for (var i=0; i < keys.length; i++) {
+    var opt = keys[i]; 
+    var el = document.createElement("option");
+    el.textContent = opt;
+    el.value = opt;
+    select.appendChild(el);
+  }
+}
+
+function selectPublicKey() {
+  var keyname = document.getElementById("public-key-select").value;
+  if (keyname == "NONE") {
+    return;
+  }
+
+  var keyList = JSON.parse(localStorage.getItem("keyList"));
+  var key = keyList[keyname];
+
+  encryptSelectedText(key);
+  closeKeySelect();
+}
+
+function closeKeySelect() {
+  document.getElementById("invis-select").style.visibility = "hidden";
+  document.getElementById("buttons").style.visibility = "visible";
+}
+
 //Assumes ciphertext structure:
 /*
-172 - AES key
-172 - AES IV
+344 - AES key
+344 - AES IV
 XXX - Message
-172 - Signature of sha256
+344 - Signature over sha256
 */
 
 function verifySelectedtext() {
@@ -262,7 +315,11 @@ function verifySelectedtext() {
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById("import").onclick = openKeyManagerTab;
   document.getElementById("decrypt").onclick = decryptSelectedText;
-  document.getElementById("encrypt").onclick = encryptSelectedText;
+
+  document.getElementById("encrypt").onclick = showPublicKeys;
+  document.getElementById("pubkey-button-select").onclick = selectPublicKey;
+  document.getElementById("pubkey-button-cancel").onclick = closeKeySelect;
+
   document.getElementById("verify").onclick = verifySelectedtext;
 
   //renderStatus("Initializing......");
