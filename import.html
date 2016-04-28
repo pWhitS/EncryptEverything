@@ -12,8 +12,42 @@
    <title>Encrypt Everything!</title>
 </head>
 
-<body>
+<body onLoad="init()">
 
+<script>
+function addPubKey(){
+  if (localStorage.keyList) {
+    //alert(localStorage.getItem("keyList"));
+    var keyList = JSON.parse(localStorage.getItem("keyList"));
+  } else {
+    console.log("No keyList found.  Creating an empty one.")
+    var keyList = {};
+  }
+  var name = document.getElementById("name").value;
+  var key = document.getElementById("pubKey").value;
+  keyList[name] = key;
+  localStorage.setItem("keyList", JSON.stringify(keyList));
+  console.log("Added " +name+ " with key "+key+"\nThere are now " + Object.keys(keyList).length + " keys.");
+  //alert(JSON.stringify(keyList));
+  location.reload()
+}
+function addPrivKey(){
+  var privKey = document.getElementById("privKey").value;
+  localStorage.setItem("privKey", privKey);
+  console.log("Your private key is " + privKey)
+}
+function delKey(){
+  var key = document.getElementById("deleteKey").value;
+  var keyList = JSON.parse(localStorage.getItem("keyList"));
+  delete keyList[key];
+  localStorage.setItem("keyList", JSON.stringify(keyList));
+  console.log("Entry for "+key+" has been removed")
+  location.reload()
+}
+function init() {
+  //localStorage.removeItem("keyList");
+}
+</script>
 <h1>Encrypt Everything! Key Manager</h1>
 <div class="container">    
     <div class="sideBar">
@@ -36,11 +70,49 @@
       </ul>
     </div>
     <div class="content">
+      <section>
+	<div> </div>
+                <h1>Add public key</h1>
+                <form id="localStorageTest" method="post" action="">
+                        <label>Name:</label><br>
+                        <input type="text" name="name" id="name" class="stored" value="" /><br><br>
 
+                        <label>Public Key:</label><br>
+                        <textarea name="pubKey" id="pubKey" class="stored"></textarea><br>
+                        <input onclick="addPubKey()" type="button" value="Add Public Key" />
+                </form>
+      </section>
 
+      <section>
+	<h1>Remove public key</h1>
+	<select id="deleteKey">
+	  <option>Pick key to delete</option>
+	  <script>
+	    var select = document.getElementById("deleteKey");
+            var keyList = JSON.parse(localStorage.getItem("keyList"));
+	    var keys = Object.keys(keyList);
+	    for(var i = 0; i < keys.length; i++) {
+              var opt = keys[i];
+              var el = document.createElement("option");
+              el.textContent = opt;
+              el.value = opt;
+              select.appendChild(el);
+          }
+        </script>
+	</select>
+	<input onclick="delKey()" type="button" value="Delete key" />
+      </section>
 
+      <section>
+	<div id="influads_block" class="influads_block"> </div>
+                <h1>Add private key</h1>
+                <form id="localStorageTest" method="post" action="">
+                        <label>You Private Key:</label><br>
+                        <textarea name="privKey" id="privKey" class="stored"></textarea><br>
+                        <input onclick="addPrivKey()" type="button" value="Add Your Private Key" />
+                </form>
+      </section>
     </div>
 </div>
-
 </body>
 <html>
