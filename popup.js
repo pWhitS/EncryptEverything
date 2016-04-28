@@ -210,28 +210,31 @@ function encryptSelectedText(pubkey) {
   });
 }
 
-
+//Puts the public keys into the select list
 function showPublicKeys() {
   var selectDiv = document.getElementById("invis-select");
   var select = document.getElementById("public-key-select");
   var buttons = document.getElementById("buttons");
 
+  //get the keylist from localStorage
   var keyList = JSON.parse(localStorage.getItem("keyList"));
   if (keyList == null) {
     swal("Error", "No public keys...", "error");
     return;
   }
-  var keys = Object.keys(keyList);
+  var keys = Object.keys(keyList); //get only the keys from the public key dictionary
 
-  selectDiv.style.visibility = "visible";
-  buttons.style.visibility = "hidden";
-
-  select.options.length = 0;
+  buttons.style.visibility = "hidden"; //hide main menu buttons
+  selectDiv.style.visibility = "visible"; //show the select public key form
+  
+  //reset the select list
+  select.options.length = 0; 
   var blankOption = document.createElement("option");
   blankOption.textContent = "Select Public Key"; 
   blankOption.value = "NONE";
-  select.appendChild(blankOption);
+  select.appendChild(blankOption); 
 
+  //populate the select list with public key names
   for (var i=0; i < keys.length; i++) {
     var opt = keys[i]; 
     var el = document.createElement("option");
@@ -241,23 +244,27 @@ function showPublicKeys() {
   }
 }
 
+//Gets the selected public key and uses it for encryption.
+//Returns to the main menu
 function selectPublicKey() {
   var keyname = document.getElementById("public-key-select").value;
   if (keyname == "NONE") {
     return;
   }
-
   var keyList = JSON.parse(localStorage.getItem("keyList"));
-  var key = keyList[keyname];
+  var key = keyList[keyname]; 
 
-  encryptSelectedText(key);
-  closeKeySelect();
+  encryptSelectedText(key); //call encryption routine with key name
+  closeKeySelect(); //resets the display
 }
 
+//Hids the public key select form
+//Returns the main menu to visible
 function closeKeySelect() {
   document.getElementById("invis-select").style.visibility = "hidden";
   document.getElementById("buttons").style.visibility = "visible";
 }
+
 
 //Assumes ciphertext structure:
 /*
@@ -266,7 +273,6 @@ function closeKeySelect() {
 XXX - Message
 344 - Signature over sha256
 */
-
 function verifySelectedtext() {
   var pubkey = document.getElementById("pub").value; //replace with localStorage
   if (pubkey == null || pubkey.length == 0) {
