@@ -15,7 +15,7 @@
 <body onLoad="init()">
 
 <script>
-function addKey(){
+function addPubKey(){
   if (localStorage.keyList) {
     //alert(localStorage.getItem("keyList"));
     var keyList = JSON.parse(localStorage.getItem("keyList"));
@@ -24,15 +24,20 @@ function addKey(){
     var keyList = {};
   }
   var name = document.getElementById("name").value;
-  var key = document.getElementById("key").value;
+  var key = document.getElementById("pubKey").value;
   keyList[name] = key;
   localStorage.setItem("keyList", JSON.stringify(keyList));
   console.log("Added " +name+ " with key "+key+"\nThere are now " + Object.keys(keyList).length + " keys.");
   //alert(JSON.stringify(keyList));
 }
+function addPrivKey(){
+  var privKey = document.getElementById("privKey").value;
+  localStorage.setItem("privKey", privKey);
+  console.log("Your private key is " + privKey)
+}
 function init() {
   //localStorage.removeItem("keyList");
-  //console.log("Cleared keys");
+
 }
 </script>
 <h1>Encrypt Everything! Key Manager</h1>
@@ -65,8 +70,17 @@ function init() {
                         <input type="text" name="name" id="name" class="stored" value="" /><br><br>
 
                         <label>Public Key:</label><br>
-                        <textarea name="key" id="key" class="stored"></textarea><br>
-                        <input onclick="addKey()" type="button" value="Add" />
+                        <textarea name="pubKey" id="pubKey" class="stored"></textarea><br>
+                        <input onclick="addPubKey()" type="button" value="Add Public Key" />
+                </form>
+      </section>
+      <section>
+	<div id="influads_block" class="influads_block"> </div>
+                <h1>Add private key</h1>
+                <form id="localStorageTest" method="post" action="">
+                        <label>You Private Key:</label><br>
+                        <textarea name="privKey" id="privKey" class="stored"></textarea><br>
+                        <input onclick="addPrivKey()" type="button" value="Add Your Private Key" />
                 </form>
       </section>
     </div>
