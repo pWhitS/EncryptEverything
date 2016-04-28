@@ -1552,12 +1552,12 @@ function RSADoPrivate(x) {
 // Return the PKCS#1 RSA decryption of "ctext".
 // "ctext" is an even-length hex string and the output is a plain string.
 function RSADecrypt(ctext, is_sig) {
-  var c = parseBigInt(ctext, 16); //parse text string to hex int
+  var c = parseBigInt(ctext, 16);
   var m = null;
   if (is_sig) {
     m = this.doPublic(c);
   } else {
-    m = this.doPrivate(c); 
+    m = this.doPrivate(c);
   }
   if(m == null) return null;
   return pkcs1unpad2(m, (this.n.bitLength()+7)>>3);
@@ -4236,16 +4236,7 @@ JSEncrypt.prototype.setPublicKey = function (pubkey) {
 JSEncrypt.prototype.decrypt = function (string, is_sig) {
   // Return the decrypted string.
   try {
-//    console.log("before getKey");
-    var key = this.getKey();
-//    console.log("getKey is fine");
-//    console.log("before b64");
-    var str = b64tohex(string);
-//    console.log("b64 is fine");
-//    console.log("before decrypt");
-    var result = key.decrypt(str, is_sig);
-//    console.log("decrypt is fine");
-    return result;
+    return this.getKey().decrypt(b64tohex(string), is_sig);
   }
   catch (ex) {
     return false;
