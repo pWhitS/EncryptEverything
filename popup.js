@@ -67,11 +67,11 @@ function decryptSelectedText() {
     var enc_key = buf.substring(0, G_RSA_BLOCK_SIZE);
     var enc_iv = buf.substring(G_RSA_BLOCK_SIZE, G_RSA_BLOCK_SIZE*2);
     var ciphertext_str = buf.substring(G_RSA_BLOCK_SIZE*2);
-    var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
     
     //decrypt RSA encrypted AES key and IV
     var aes_key_str = RSADecrypt(enc_key, prikey);
     var iv_str = RSADecrypt(enc_iv, prikey);
+
     //Check if decryption failed
     if (aes_key_str == null || iv_str == null) {
       swal("Decryption Failed", "The message could not be decrypted", "error");
@@ -81,6 +81,7 @@ function decryptSelectedText() {
     //convert strings to bitArrays for decrypt operation
     var aeskey = sjcl.codec.base64.toBits(aes_key_str);
     var iv = sjcl.codec.base64.toBits(iv_str);
+    var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
     console.log(aeskey);
 
     //These are parameters to the decrypt function. 

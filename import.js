@@ -8,7 +8,7 @@ var gKeyType = dPublicKey;
 
 function addPublicKey() {
   if (localStorage.keyList) {
-    //alert(localStorage.getItem("keyList"));
+    //alert(localStorage.getItem("EE-keyList"));
     var keyList = JSON.parse(localStorage.getItem("keyList"));
   } 
   else {
@@ -18,7 +18,7 @@ function addPublicKey() {
   var name = document.getElementById("name").value;
   var key = document.getElementById("pubKey").value;
   keyList[name] = key;
-  localStorage.setItem("keyList", JSON.stringify(keyList));
+  localStorage.setItem("EE-keyList", JSON.stringify(keyList));
   console.log("Added " +name+ " with key "+key+"\nThere are now " + Object.keys(keyList).length + " keys.");
   //alert(JSON.stringify(keyList));
   location.reload()
@@ -32,18 +32,18 @@ function addPrivateKey() {
 
 function deletePublicKey() {
   var key = document.getElementById("deleteKey").value;
-  var keyList = JSON.parse(localStorage.getItem("keyList"));
+  var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
   delete keyList[key];
   console.log("Entry for "+key+" has been removed")
 
-  localStorage.setItem("keyList", JSON.stringify(keyList));
+  localStorage.setItem("EE-keyList", JSON.stringify(keyList));
   location.reload()
 }
 
 function init() {
   	//localStorage.removeItem("keyList");
   	var select = document.getElementById("deleteKey");
-	var keyList = JSON.parse(localStorage.getItem("keyList"));
+	var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
 	if (keyList == null) {
 		return;
 	}
