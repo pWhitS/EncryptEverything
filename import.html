@@ -29,15 +29,23 @@ function addPubKey(){
   localStorage.setItem("keyList", JSON.stringify(keyList));
   console.log("Added " +name+ " with key "+key+"\nThere are now " + Object.keys(keyList).length + " keys.");
   //alert(JSON.stringify(keyList));
+  location.reload()
 }
 function addPrivKey(){
   var privKey = document.getElementById("privKey").value;
   localStorage.setItem("privKey", privKey);
   console.log("Your private key is " + privKey)
 }
+function delKey(){
+  var key = document.getElementById("deleteKey").value;
+  var keyList = JSON.parse(localStorage.getItem("keyList"));
+  delete keyList[key];
+  localStorage.setItem("keyList", JSON.stringify(keyList));
+  console.log("Entry for "+key+" has been removed")
+  location.reload()
+}
 function init() {
   //localStorage.removeItem("keyList");
-
 }
 </script>
 <h1>Encrypt Everything! Key Manager</h1>
@@ -82,6 +90,24 @@ function init() {
                         <textarea name="privKey" id="privKey" class="stored"></textarea><br>
                         <input onclick="addPrivKey()" type="button" value="Add Your Private Key" />
                 </form>
+      </section>
+      <section>
+	<select id="deleteKey">
+	  <option>Pick key to delete</option>
+	  <script>
+	    var select = document.getElementById("deleteKey");
+            var keyList = JSON.parse(localStorage.getItem("keyList"));
+	    var keys = Object.keys(keyList);
+	    for(var i = 0; i < keys.length; i++) {
+              var opt = keys[i];
+              var el = document.createElement("option");
+              el.textContent = opt;
+              el.value = opt;
+              select.appendChild(el);
+          }
+        </script>
+	</select>
+	<input onclick="delKey()" type="button" value="Delete key" />
       </section>
     </div>
 </div>
