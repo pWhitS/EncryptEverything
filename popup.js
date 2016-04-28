@@ -142,8 +142,7 @@ function decryptSelectedText() {
   - IV
 5. Append message ciphertext to the end
 **/ 
-function encryptSelectedText() {  
-  var pubkey = document.getElementById("pub").value; //replace with localStorage
+function encryptSelectedText(pubkey) {  
   if (pubkey == null || pubkey.length == 0) {
     swal("Error", "No public key found!", "error");
     return;
@@ -205,6 +204,54 @@ function encryptSelectedText() {
 }
 
 
+function showPublicKeys() {
+  var selectDiv = document.getElementById("invis-select");
+  var select = document.getElementById("public-key-select");
+  var buttons = document.getElementById("buttons");
+
+  var keyList = JSON.parse(localStorage.getItem("keyList"));
+  if (keyList == null) {
+    swal("Error", "No public keys...", "error");
+    return;
+  }
+  var keys = Object.keys(keyList);
+
+  selectDiv.style.visibility = "visible";
+  buttons.style.visibility = "hidden";
+
+  select.options.length = 0;
+  var blankOption = document.createElement("option");
+  blankOption.textContent = "Select Public Key"; 
+  blankOption.value = "NONE";
+  select.appendChild(blankOption);
+
+  for (var i=0; i < keys.length; i++) {
+    var opt = keys[i]; 
+    var el = document.createElement("option");
+    el.textContent = opt;
+    el.value = opt;
+    select.appendChild(el);
+  }
+}
+
+function selectPublicKey() {
+  var keyname = document.getElementById("public-key-select").value;
+  if (keyname == "NONE") {
+    return;
+  }
+
+  var keyList = JSON.parse(localStorage.getItem("keyList"));
+  var key = keyList[keyname];
+
+  encryptSelectedText(key);
+  closeKeySelect();
+}
+
+function closeKeySelect() {
+  document.getElementById("invis-select").style.visibility = "hidden";
+  document.getElementById("buttons").style.visibility = "visible";
+}
+
 //Assumes ciphertext structure:
 /*
 172 - AES key
@@ -261,7 +308,11 @@ function verifySelectedtext() {
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById("import").onclick = openKeyManagerTab;
   document.getElementById("decrypt").onclick = decryptSelectedText;
-  document.getElementById("encrypt").onclick = encryptSelectedText;
+
+  document.getElementById("encrypt").onclick = showPublicKeys;
+  document.getElementById("pubkey-button-select").onclick = selectPublicKey;
+  document.getElementById("pubkey-button-cancel").onclick = closeKeySelect;
+
   document.getElementById("verify").onclick = verifySelectedtext;
 
   //renderStatus("Initializing......");

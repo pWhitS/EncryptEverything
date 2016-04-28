@@ -74,6 +74,15 @@
         filter: alpha(opacity=0);
       }
 
+      #invis-select {
+        margin-top: 3em;
+        visibility: hidden;
+        text-align: center;
+      }
+      #public-key-select {
+        width: 100%;
+      }
+
     </style>
 
     <link rel="stylesheet" type="text/css" href="sweetalert/dist/sweetalert.css">
@@ -138,6 +147,18 @@ AgMBAAE=
         <a href="#" id="verify" class="action-buttons">Verify</a><br><br>
         <a href="#" id="import" class="action-buttons">Manage</a>
       </div>
+
+      <!--HIDDEN UNTIL ENCRYPT IS SELECTED!-->
+      <div id="invis-select">
+        <select id="public-key-select">
+          <option>Select Public Key</option>
+        </select>
+
+        <br><br>
+        <a href="#" id="pubkey-button-select" class="action-buttons">Select</a><br><br>
+        <a href="#" id="pubkey-button-cancel" class="action-buttons">Cancel</a><br>
+      </div>
+      
 
 <!--       <br><br><br> <br><br><br> <br><br><br>
 
