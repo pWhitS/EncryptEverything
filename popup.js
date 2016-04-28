@@ -39,7 +39,7 @@ function RSADecrypt(buffer, prikey) {
   return plaintext;
 }
 
-var G_RSA_BLOCK_SIZE = 172; //not sure if this is 172 for all key sizes
+var G_RSA_BLOCK_SIZE = 172; //scales linearly with size of key
 
 //Fucntion decrypts highlighted text
 /**
