@@ -109,7 +109,8 @@ function decryptSelectedText() {
     }
     
     // get public key of sender
-    var pubkey = localStorage.getItem(sender_id);
+    var keylist = JSON.parse(localStorage.getItem("EE-keyList"));
+    var pubkey = keylist[sender_id];
     
     // check if we have the sender's public key
     // TODO allow the user to bypass the integrity/auth check if desired
@@ -268,6 +269,7 @@ function encryptSelectedText(sender_id, pubkey) {
     
     // encrypt the hash with sender's private key to generate a digital signature (integrity, authenticity)
     var digital_signature = RSASign(message_digest_str, prikey);
+    console.log(message_digest_str);
     
     console.log("DIGITAL SIGNATURE: " + digital_signature + " LEN: " + digital_signature.length);
     

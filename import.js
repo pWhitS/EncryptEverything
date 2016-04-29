@@ -23,10 +23,12 @@ function addPublicKey() {
 function addPrivateKey() {
   var privKey = document.getElementById("privKey").value;
   var password = document.getElementById("password").value;
-  var encKey = sjcl.encrypt(password, privKey);
-  localStorage.setItem("EE-Private-Key", JSON.stringify(encKey));
-  console.log(encKey);
-  console.log(sjcl.decrypt(password, encKey));
+  //temporarily disabling encrypting the private key until the feature is complete
+  localStorage.setItem("EE-Private-Key", privKey);
+//  var encKey = sjcl.encrypt(password, privKey);
+//  localStorage.setItem("EE-Private-Key", JSON.stringify(encKey));
+//  console.log(encKey);
+//  console.log(sjcl.decrypt(password, encKey));
 }
 
 function deletePublicKey() {
