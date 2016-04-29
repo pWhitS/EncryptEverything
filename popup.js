@@ -84,7 +84,6 @@ function decryptSelectedText() {
 
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();
-    console.log(buf);
 
     //Selected text must be at least 2 RSA blocks
     if (buf.length < G_RSA_BLOCK_SIZE*2) { 
@@ -94,20 +93,18 @@ function decryptSelectedText() {
     
     // grab the digital signature from the encrypted blob
     var digital_signature = buf.substring(0, G_RSA_BLOCK_SIZE);
-    console.log(digital_signature);
     
     // decrypt the signature using the sender's public RSA key to get the hash calculated by the sender
     var received_message_digest_str = RSAVerify(digital_signature, pubkey);
-    console.log(received_message_digest_str);
     var received_message_digest = sjcl.codec.hex.toBits(received_message_digest_str);
     
     // calculate a hash directly on the message
     var message = buf.substring(G_RSA_BLOCK_SIZE);
-    console.log("MESSAGE: " + message + " LEN: " + message.length);
-    console.log(typeof(message));
     var calculated_message_digest = sjcl.hash.sha256.hash(message);
     
+    // if digests are equal, authenticity and integrity has been verified
     if (digestsAreEqual(calculated_message_digest, received_message_digest)) {
+      console.log("Equal digests");
       //Break up the rest of the pieces of encrypted data from the message blob
       var enc_sender_id = message.substring(0, G_RSA_BLOCK_SIZE);
       var enc_key = message.substring(G_RSA_BLOCK_SIZE, G_RSA_BLOCK_SIZE*2);
@@ -123,7 +120,6 @@ function decryptSelectedText() {
       //convert strings to bitArrays for decrypt operation
       var aeskey = sjcl.codec.base64.toBits(aes_key_str);
       var iv = sjcl.codec.base64.toBits(iv_str);
-      console.log(aeskey);
 
       //These are parameters to the decrypt function. 
       //Must match parameters given to encrypt
@@ -155,7 +151,7 @@ function decryptSelectedText() {
       //Display as popup with options: close, copy to clipboard
       //TODO: Somehow, in copying the plaintext to the clipboard, the newline characters are lost; I suspect this has to do with writing it to the invisibleInputField first; should be fixed
       swal({
-        title: "Decryted Text",
+        title: "Decrypted Text",
         text: popup_plaintext,
         confirmButtonColor: "#DD6B55",
         confirmButtonText: "Copy",
@@ -175,15 +171,10 @@ function decryptSelectedText() {
       });
 
       console.log(plaintext);
-    } else {
+    } else { // if digests are not equal, then the message is either not authentic or it was modified in transit
+      console.log("Bad digest");
       //Display as popup window reporting failed integrity/auth check
-      swal({
-        title: "Integrity/Authenticity Error",
-        text: "Message failed integrity/authenticity checks. Could not verify signature of sender.",
-        showCancelButton: true,
-        cancelButtonText: "Close",
-        closeOnCancel: true,
-      });
+      swal("Error","Message failed integrity/authenticity checks. Could not verify signature of sender.","error");
     }
   });
 }
@@ -240,34 +231,15 @@ function encryptSelectedText() {
     message += enc_key;
     message += enc_iv;
     message += ciphertext;
-
-    console.log("ENCRYPTED ID: " + enc_sender_id + " LEN: " + enc_sender_id.length);
-    console.log("ENCRYPTED KEY: " + enc_key + " LEN: " + enc_key.length);
-    console.log("ENCRYPTED IV: " + enc_iv + " LEN: " + enc_iv.length);
-    console.log("CIPHERTEXT: " + ciphertext + " LEN: " + ciphertext.length);
-    console.log(message);
     
     // generate a hash of the hybrid encrypted message
-    console.log("MESSAGE: " + message + " LEN: " + message.length);
-    console.log(typeof(message));
     var message_digest = sjcl.hash.sha256.hash(message);
     var message_digest_str = sjcl.codec.hex.fromBits(message_digest);
-    
-    console.log("MESSAGE DIGEST RAW: " + message_digest + " LEN: " + message_digest.length);
-    console.log("MESSAGE DIGEST HEX: " + message_digest_str + " LEN: " + message_digest_str.length);    
     
     // encrypt the hash with sender's private key to generate a digital signature (integrity, authenticity)
     var digital_signature = RSASign(message_digest_str, prikey);
     
     console.log("DIGITAL SIGNATURE: " + digital_signature + " LEN: " + digital_signature.length);
-    console.log(RSAVerify(digital_signature,pubkey))
-//    var test1 = new JSEncrypt();
-//    test1.setPrivateKey(prikey);
-//    var test_sig = test1.encrypt(message_digest_str);
-//    console.log(test_sig);
-//    var test2 = new JSEncrypt();
-//    test2.setPublicKey(pubkey);
-//    console.log(test2.decrypt(test_sig));
     
     // prepend the signature to the message to sign it
     var signed_message = digital_signature + message;
