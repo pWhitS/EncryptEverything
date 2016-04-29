@@ -28,17 +28,44 @@ function openKeyManagerTab() {
 function RSAEncrypt(buffer, pubkey) {
   var enc = new JSEncrypt();
   enc.setPublicKey(pubkey);
-  var ciphertext = enc.encrypt(buffer);
+  var ciphertext = enc.encrypt(buffer,false);
   return ciphertext;
 }
 
 function RSADecrypt(buffer, prikey) {
   var dec = new JSEncrypt();
   dec.setPrivateKey(prikey);
-  var plaintext = dec.decrypt(buffer);
+  var plaintext = dec.decrypt(buffer,false);
   return plaintext;
 }
 
+//--- RSA Signature Wrappers ---//
+function RSASign(digest, prikey) {
+  var enc = new JSEncrypt();
+  enc.setPrivateKey(prikey);
+  var signature = enc.encrypt(digest,true);
+  return signature;
+}
+
+function RSAVerify(signature, pubkey) {
+  var dec = new JSEncrypt()
+  dec.setPublicKey(pubkey);
+  var digest = dec.decrypt(signature,true);
+  return digest;
+}
+
+// takes two digests as bitArrays (from sjcl) and compares the value by value to determine equality
+function digestsAreEqual(digest1, digest2) {
+  if (digest1.length != digest2.length) {
+    return false;
+  }
+  for (i = 0; i < digest1.length; i++) {
+    if (digest1[i] != digest2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 
 var G_RSA_BLOCK_SIZE = 344; //scales linearly with key size. 2048 key - 344
 
@@ -52,24 +79,70 @@ var G_RSA_BLOCK_SIZE = 344; //scales linearly with key size. 2048 key - 344
 function decryptSelectedText() {
   //localStorage.setItem("EE-Private-Key", document.getElementById("sec").value);
   var prikey = localStorage.getItem("EE-Private-Key");
-  //var prikey = document.getElementById("sec").value; //replace with localStorage
 
   getSelectedText(function(selectedText) {
+    // sanity check that the user has uploaded their private key
+    if (prikey == null || prikey.length == 0) {
+      swal("Error", "No private key found", "error");
+      return;
+    }
     var buf = selectedText.toString();
-    console.log(buf);
 
     //Selected text must be at least 2 RSA blocks
     if (buf.length < G_RSA_BLOCK_SIZE*2) { 
       swal("Error", "No selected text!", "error");
       return;
     }
-
-    //Break up the pieces of encrypted the blob
-    var enc_key = buf.substring(0, G_RSA_BLOCK_SIZE);
-    var enc_iv = buf.substring(G_RSA_BLOCK_SIZE, G_RSA_BLOCK_SIZE*2);
-    var ciphertext_str = buf.substring(G_RSA_BLOCK_SIZE*2);
     
-    //decrypt RSA encrypted AES key and IV
+    // grab the digital signature from the encrypted blob
+    var digital_signature = buf.substring(0, G_RSA_BLOCK_SIZE);
+    var enc_sender_id = buf.substring(G_RSA_BLOCK_SIZE, G_RSA_BLOCK_SIZE*2);
+    
+    // Decrypt the sender_id with the recipient's private jey
+    var sender_id = RSADecrypt(enc_sender_id, prikey);
+    
+    // Check if decryption failed
+    // TODO allow the user to bypass if just decrypting sender_id fails
+    if (sender_id == null) {
+      swal("Decryption Failed", "The message could not be decrypted", "error");
+      return;
+    }
+    
+    // get public key of sender
+    var pubkey = localStorage.getItem(sender_id);
+    
+    // check if we have the sender's public key
+    // TODO allow the user to bypass the integrity/auth check if desired
+    if (pubkey == null || pubkey.length == 0) {
+      swal("Error", "No public key found for the following ID: " + sender_id, "error");
+      return;
+    }
+    
+    // decrypt the signature using the sender's public RSA key to get the hash calculated by the sender
+    var received_message_digest_str = RSAVerify(digital_signature, pubkey);
+    var received_message_digest = sjcl.codec.hex.toBits(received_message_digest_str);
+    
+    // calculate a hash directly on the message
+    var message = buf.substring(G_RSA_BLOCK_SIZE);
+    var calculated_message_digest = sjcl.hash.sha256.hash(message);
+    
+    
+    // if digests are not equal, then the message is either not authentic or it was modified in transit
+    if (!(digestsAreEqual(calculated_message_digest, received_message_digest))) {
+      console.log("Bad digest");
+      //Display as popup window reporting failed integrity/auth check
+      swal("Error","Message failed integrity/authenticity checks. Could not verify signature of sender.","error");
+      return;
+    }
+    // if we pass the previous if-block, digests are equal, authenticity and integrity has been verified
+    console.log("Equal digests");
+    
+    //Break up the rest of the pieces of encrypted data from the message blob
+    var enc_key = message.substring(G_RSA_BLOCK_SIZE, G_RSA_BLOCK_SIZE*2);
+    var enc_iv = message.substring(G_RSA_BLOCK_SIZE*2, G_RSA_BLOCK_SIZE*3);
+    var ciphertext_str = message.substring(G_RSA_BLOCK_SIZE*3);
+
+    //decrypt AES key and IV using recipient's RSA private key
     var aes_key_str = RSADecrypt(enc_key, prikey);
     var iv_str = RSADecrypt(enc_iv, prikey);
 
@@ -78,12 +151,11 @@ function decryptSelectedText() {
       swal("Decryption Failed", "The message could not be decrypted", "error");
       return;
     }
-
+    
     //convert strings to bitArrays for decrypt operation
     var aeskey = sjcl.codec.base64.toBits(aes_key_str);
     var iv = sjcl.codec.base64.toBits(iv_str);
     var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
-    console.log(aeskey);
 
     //These are parameters to the decrypt function. 
     //Must match parameters given to encrypt
@@ -104,7 +176,7 @@ function decryptSelectedText() {
       swal("Decryption Error", "Something went wrong...", "error");
       return;
     }
-    
+
     //truncate plaintext that gets displayed in the popup if too big (>150 chars)
     if (plaintext.length > 150) {
       var popup_plaintext = plaintext.substring(0,150) + " ...";
@@ -115,7 +187,7 @@ function decryptSelectedText() {
     //Display as popup with options: close, copy to clipboard
     //TODO: Somehow, in copying the plaintext to the clipboard, the newline characters are lost; I suspect this has to do with writing it to the invisibleInputField first; should be fixed
     swal({
-      title: "Decryted Text",
+      title: "Decrypted Text",
       text: popup_plaintext,
       confirmButtonColor: "#DD6B55",
       confirmButtonText: "Copy",
@@ -149,11 +221,13 @@ function decryptSelectedText() {
   - IV
 5. Append message ciphertext to the end
 **/ 
-function encryptSelectedText(pubkey) {  
+function encryptSelectedText(sender_id, pubkey) {  
   if (pubkey == null || pubkey.length == 0) {
-    swal("Error", "No public key found!", "error");
+    swal("Error", "No public key found for the following ID: " + sender_id, "error");
     return;
   }
+  // get private key for signing
+  var prikey = localStorage.getItem("EE-Private-Key");
 
   var aeskey = sjcl.random.randomWords(8); //8 * 32 == 256 bits
   var aes_key_str = sjcl.codec.base64.fromBits(aeskey);
@@ -176,24 +250,33 @@ function encryptSelectedText(pubkey) {
     var ciphertext = sjcl.codec.base64.fromBits(result_obj.ct); 
     var iv = sjcl.codec.base64.fromBits(result_obj.iv);
     
-    //Encrypt AES key and IV with RSA
+    //Encrypt sender ID (e.g. email), AES key, and IV with RSA using public key of recipient
+    var enc_sender_id = RSAEncrypt(sender_id, pubkey);
     var enc_key = RSAEncrypt(aes_key_str, pubkey); //172
     var enc_iv = RSAEncrypt(iv, pubkey); //172
 
     //Construct the hybrid encrypted message
     var message = "";
+    message += enc_sender_id;
     message += enc_key;
     message += enc_iv;
     message += ciphertext;
-
-    console.log("ENCRYPTED KEY: " + enc_key + " LEN: " + enc_key.length);
-    console.log("ENCRYPTED IV: " + enc_iv + " LEN: " + enc_iv.length);
-    console.log("CIPHERTEXT: " + ciphertext + " LEN: " + ciphertext.length);
-    console.log(message);
+    
+    // generate a hash of the hybrid encrypted message
+    var message_digest = sjcl.hash.sha256.hash(message);
+    var message_digest_str = sjcl.codec.hex.fromBits(message_digest);
+    
+    // encrypt the hash with sender's private key to generate a digital signature (integrity, authenticity)
+    var digital_signature = RSASign(message_digest_str, prikey);
+    
+    console.log("DIGITAL SIGNATURE: " + digital_signature + " LEN: " + digital_signature.length);
+    
+    // prepend the signature to the message to sign it
+    var signed_message = digital_signature + message;
 
     //set the invisible element's value to the encrypted message
     var invisibleInputField = document.getElementById("invis");
-    invisibleInputField.value = message;
+    invisibleInputField.value = signed_message;
 
     invisibleInputField.focus(); //Moves cursor to textarea
     invisibleInputField.select(); //Selects (Highlights) text in textarea
@@ -254,7 +337,7 @@ function selectPublicKey() {
   var keyList = JSON.parse(localStorage.getItem("keyList"));
   var key = keyList[keyname]; 
 
-  encryptSelectedText(key); //call encryption routine with key name
+  encryptSelectedText(keyname, key); //call encryption routine with key name
   closeKeySelect(); //resets the display
 }
 
