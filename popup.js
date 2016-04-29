@@ -171,7 +171,7 @@ function decryptSubroutine(pwd) {
     
     // Check if decryption failed
     // TODO allow the user to bypass if just decrypting sender_id fails
-    if (sender_id == null) {
+    if (sender_id == null || sender_id == false) {
       swal("Decryption Failed", "The message could not be decrypted", "error");
       return;
     }
@@ -191,6 +191,10 @@ function decryptSubroutine(pwd) {
     console.log(digital_signature);
     // decrypt the signature using the sender's public RSA key to get the hash calculated by the sender
     var received_message_digest_str = RSAVerify(digital_signature, pubkey);
+    if (received_message_digest_str == null || received_message_digest_str == false) {
+      swal("Verification Failed", "The signature could not be authenticated", "error");
+      return;
+    }
     console.log(received_message_digest_str);
     var received_message_digest = sjcl.codec.hex.toBits(received_message_digest_str);
     
@@ -203,7 +207,7 @@ function decryptSubroutine(pwd) {
     var timestamp_str = RSADecrypt(enc_timestamp_str, prikey);
     
     // Check if decryption failed
-    if (timestamp_str == null) {
+    if (timestamp_str == null || timestamp_str == false) {
       swal("Decryption Failed", "The message could not be decrypted", "error");
       return;
     }
@@ -237,7 +241,7 @@ function decryptSubroutine(pwd) {
     var iv_str = RSADecrypt(enc_iv, prikey);
 
     //Check if decryption failed
-    if (aes_key_str == null || iv_str == null) {
+    if (aes_key_str == null || iv_str == null || aes_key_str == false || iv_str == null) {
       swal("Decryption Failed", "The message could not be decrypted", "error");
       return;
     }
@@ -261,8 +265,14 @@ function decryptSubroutine(pwd) {
     ct_json["mode"] = "ccm";
     var ct_json_str = sjcl.json.encode(ct_json); //Convert JSON to string
 
-    var plaintext = sjcl.decrypt(aeskey, ct_json_str); //Do the decryption
-    if (plaintext == null || plaintext.length == 0) {
+    var plaintext = null;
+    try {
+      plaintext = sjcl.decrypt(aeskey, ct_json_str); //Do the decryption
+    } catch(ex) {
+      swal("Decryption Error", "Something went wrong...", "error");
+      return;
+    }
+    if (plaintext == null) {
       swal("Decryption Error", "Something went wrong...", "error");
       return;
     }
