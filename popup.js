@@ -93,6 +93,7 @@ function updateTimestamp(timestamp, sender_id) {
   localStorage.setItem("EE-timeList", JSON.stringify(timelist));
 }
 
+
 var G_RSA_BLOCK_SIZE = 344; //scales linearly with key size. 2048 key - 344
 
 //Fucntion decrypts highlighted text
@@ -114,8 +115,8 @@ function decryptSelectedText() {
     }
     var buf = selectedText.toString();
 
-    //Selected text must be at least 2 RSA blocks
-    if (buf.length < G_RSA_BLOCK_SIZE*2) { 
+    //Selected text must be at least 5 RSA blocks
+    if (buf.length < G_RSA_BLOCK_SIZE*5) { 
       swal("Error", "No selected text!", "error");
       return;
     }
@@ -157,7 +158,7 @@ function decryptSelectedText() {
     var enc_timestamp_str = buf.substring(G_RSA_BLOCK_SIZE*2, G_RSA_BLOCK_SIZE*3);
     var timestamp_str = RSADecrypt(enc_timestamp_str, prikey);
     
-    // check that timestamp is not stale; it must be newer than the previous timestamp seen from the given sender
+    check that timestamp is not stale; it must be newer than the previous timestamp seen from the given sender
     var timestamp = parseInt(timestamp_str);
     var prev_timestamp = getPrevTimestamp(sender_id);
     if (timestamp <= prev_timestamp) {
