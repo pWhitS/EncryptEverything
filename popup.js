@@ -343,6 +343,11 @@ function encryptSubroutine(pubkey, pwd) {
   
   //get the sender's ID
   var sender_id = localStorage.getItem("EE-User-ID");
+  
+  if (sender_id == null || sender_id.length == 0) {
+    swal("Error","Cannot locate your ID. Please go to Manage and re-enter your ID, private key and password","error");
+    return;
+  }
 
   var aeskey = sjcl.random.randomWords(8); //8 * 32 == 256 bits
   var aes_key_str = sjcl.codec.base64.fromBits(aeskey);
