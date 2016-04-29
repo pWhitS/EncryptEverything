@@ -45,7 +45,6 @@ function deletePublicKey() {
   var key = document.getElementById("deleteKey").value;
   var keyList = JSON.parse(localStorage.getItem(EE_KEYLIST));
   delete keyList[key];
-  console.log("Entry for "+key+" has been removed");
   
   localStorage.setItem(EE_KEYLIST, JSON.stringify(keyList));
   location.reload();

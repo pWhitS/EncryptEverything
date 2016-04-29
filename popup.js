@@ -1,5 +1,3 @@
-
-
 function getSelectedText(callback) {
   var queryInfo = {
     active: true,
@@ -9,7 +7,6 @@ function getSelectedText(callback) {
   chrome.tabs.executeScript({
     code: "window.getSelection().toString();"
   }, function(selection) {
-    //console.log(selection);
     callback(selection);
   });
 }
@@ -167,7 +164,6 @@ function decryptSubroutine(pwd) {
     
     // Decrypt the sender_id with the recipient's private jey
     var sender_id = RSADecrypt(enc_sender_id, prikey);
-    console.log(sender_id);
     
     // Check if decryption failed
     // TODO allow the user to bypass if just decrypting sender_id fails
@@ -179,7 +175,6 @@ function decryptSubroutine(pwd) {
     // get public key of sender
     var keylist = JSON.parse(localStorage.getItem(EE_KEYLIST));
     var pubkey = keylist[sender_id];
-    console.log(pubkey);
     
     // check if we have the sender's public key
     // TODO allow the user to bypass the integrity/auth check if desired
@@ -188,14 +183,12 @@ function decryptSubroutine(pwd) {
       return;
     }
     
-    console.log(digital_signature);
     // decrypt the signature using the sender's public RSA key to get the hash calculated by the sender
     var received_message_digest_str = RSAVerify(digital_signature, pubkey);
     if (received_message_digest_str == null || received_message_digest_str == false) {
       swal("Verification Failed", "The signature could not be authenticated", "error");
       return;
     }
-    console.log(received_message_digest_str);
     var received_message_digest = sjcl.codec.hex.toBits(received_message_digest_str);
     
     // calculate a hash directly on the message
@@ -223,13 +216,11 @@ function decryptSubroutine(pwd) {
     
     // if digests are not equal, then the message is either not authentic or it was modified in transit
     if (!(digestsAreEqual(calculated_message_digest, received_message_digest))) {
-      console.log("Bad digest");
       //Display as popup window reporting failed integrity/auth check
       swal("Error","Message failed integrity/authenticity checks. Could not verify signature of sender.","error");
       return;
     }
     // if we pass the previous if-block, digests are equal, authenticity and integrity has been verified
-    console.log("Equal digests");
     
     //Break up the rest of the pieces of encrypted data from the message blob
     var enc_key = buf.substring(G_RSA_BLOCK_SIZE*3, G_RSA_BLOCK_SIZE*4);
@@ -307,7 +298,6 @@ function decryptSubroutine(pwd) {
       }
     });
 
-    console.log(plaintext);
   });
 }
 
@@ -382,14 +372,12 @@ function encryptSubroutine(pubkey, pwd) {
 
     var result_str = sjcl.encrypt(aeskey, buf, params); //do encryption
     var result_obj = sjcl.json.decode(result_str); //get JSON from returned string
-    console.log(result_obj);
 
     var ciphertext = sjcl.codec.base64.fromBits(result_obj.ct); 
     var iv = sjcl.codec.base64.fromBits(result_obj.iv);
     
     // get current time (this will help with replay attacks)
     var timestamp = Date.now();
-    console.log(timestamp);
     var timestamp_str = timestamp.toString();
     
     //Encrypt timestamp, sender ID (e.g. email), AES key, and IV with RSA using public key of recipient
@@ -412,10 +400,7 @@ function encryptSubroutine(pubkey, pwd) {
     
     // encrypt the hash with sender's private key to generate a digital signature (integrity, authenticity)
     var digital_signature = RSASign(message_digest_str, prikey);
-    console.log(message_digest_str);
-    
-    console.log("DIGITAL SIGNATURE: " + digital_signature + " LEN: " + digital_signature.length);
-    
+        
     // prepend the signature to the message to sign it
     var signed_message = digital_signature + message;
 
@@ -452,7 +437,6 @@ function showPublicKeys() {
 
   //get the keylist from localStorage
   var keyList = JSON.parse(localStorage.getItem(EE_KEYLIST));
-  console.log(keyList);
   if (keyList == null) {
     swal("Error", "No public keys...", "error");
     return;
@@ -507,12 +491,5 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById("encrypt").onclick = showPublicKeys;
   document.getElementById("pubkey-button-select").onclick = selectPublicKey;
   document.getElementById("pubkey-button-cancel").onclick = closeKeySelect;
-
-  //renderStatus("Initializing......");
-
-  // var keygen = new JSEncrypt({default_key_size: 1024});
-  // keygen.getKey();
-  // prikey = keygen.getPrivateKey();
-  // pubkey = keygen.getPublicKey();
   
 });
