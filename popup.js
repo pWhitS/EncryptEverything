@@ -67,6 +67,32 @@ function digestsAreEqual(digest1, digest2) {
   return true;
 }
 
+// grabs timestamps from localStorage using sender_id as key; returns null if no previous timestamp for sender_id
+function getPrevTimestamp(sender_id) {
+  var timelist_str = localStorage.getItem("EE-timeList");
+  if (timelist_str == null) {
+    return null;
+  }
+  var timelist = JSON.parse(timelist_str);
+  if (sender_id in timelist) {
+    return parseInt(timelist[sender_id]);
+  }
+  return null;
+}
+
+// updates timestamp of most recent message from sender_id to storage
+function updateTimestamp(timestamp, sender_id) {
+  var timelist_str = localStorage.getItem("EE-timeList");
+  var timelist = null;
+  if (timelist_str == null) {
+    timelist = {};
+  } else {
+    timelist = JSON.parse(timelist_str);
+  }
+  timelist[sender_id] = timestamp.toString();
+  localStorage.setItem("EE-timeList", JSON.stringify(timelist));
+}
+
 var G_RSA_BLOCK_SIZE = 344; //scales linearly with key size. 2048 key - 344
 
 //Fucntion decrypts highlighted text
@@ -127,6 +153,24 @@ function decryptSelectedText() {
     var message = buf.substring(G_RSA_BLOCK_SIZE);
     var calculated_message_digest = sjcl.hash.sha256.hash(message);
     
+    // decrypt timestamp
+    var enc_timestamp_str = buf.substring(G_RSA_BLOCK_SIZE*2, G_RSA_BLOCK_SIZE*3);
+    var timestamp_str = RSADecrypt(enc_timestamp_str, prikey);
+    
+    // Check if decryption failed
+    if (sender_id == null) {
+      swal("Decryption Failed", "The message could not be decrypted", "error");
+      return;
+    }
+    
+    // check that timestamp is not stale; it must be newer than the previous timestamp seen from the given sender
+    var timestamp = parseInt(timestamp_str);
+    var prev_timestamp = getPrevTimestamp(sender_id);
+    if (timestamp <= prev_timestamp) {
+      swal("Error","Stale timestamp, possible replay attack","error");
+      return;
+    }
+    updateTimestamp(timestamp, sender_id);
     
     // if digests are not equal, then the message is either not authentic or it was modified in transit
     if (!(digestsAreEqual(calculated_message_digest, received_message_digest))) {
@@ -139,9 +183,9 @@ function decryptSelectedText() {
     console.log("Equal digests");
     
     //Break up the rest of the pieces of encrypted data from the message blob
-    var enc_key = message.substring(G_RSA_BLOCK_SIZE, G_RSA_BLOCK_SIZE*2);
-    var enc_iv = message.substring(G_RSA_BLOCK_SIZE*2, G_RSA_BLOCK_SIZE*3);
-    var ciphertext_str = message.substring(G_RSA_BLOCK_SIZE*3);
+    var enc_key = buf.substring(G_RSA_BLOCK_SIZE*3, G_RSA_BLOCK_SIZE*4);
+    var enc_iv = buf.substring(G_RSA_BLOCK_SIZE*4, G_RSA_BLOCK_SIZE*5);
+    var ciphertext_str = buf.substring(G_RSA_BLOCK_SIZE*5);
 
     //decrypt AES key and IV using recipient's RSA private key
     var aes_key_str = RSADecrypt(enc_key, prikey);
@@ -251,14 +295,21 @@ function encryptSelectedText(sender_id, pubkey) {
     var ciphertext = sjcl.codec.base64.fromBits(result_obj.ct); 
     var iv = sjcl.codec.base64.fromBits(result_obj.iv);
     
-    //Encrypt sender ID (e.g. email), AES key, and IV with RSA using public key of recipient
+    // get current time (this will help with replay attacks)
+    var timestamp = Date.now();
+    console.log(timestamp);
+    var timestamp_str = timestamp.toString();
+    
+    //Encrypt timestamp, sender ID (e.g. email), AES key, and IV with RSA using public key of recipient
+    var enc_timestamp_str = RSAEncrypt(timestamp_str, pubkey);
     var enc_sender_id = RSAEncrypt(sender_id, pubkey);
-    var enc_key = RSAEncrypt(aes_key_str, pubkey); //172
-    var enc_iv = RSAEncrypt(iv, pubkey); //172
+    var enc_key = RSAEncrypt(aes_key_str, pubkey); 
+    var enc_iv = RSAEncrypt(iv, pubkey);
 
     //Construct the hybrid encrypted message
     var message = "";
     message += enc_sender_id;
+    message += enc_timestamp_str;
     message += enc_key;
     message += enc_iv;
     message += ciphertext;
