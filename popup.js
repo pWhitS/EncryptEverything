@@ -158,7 +158,7 @@ function decryptSelectedText() {
     var enc_timestamp_str = buf.substring(G_RSA_BLOCK_SIZE*2, G_RSA_BLOCK_SIZE*3);
     var timestamp_str = RSADecrypt(enc_timestamp_str, prikey);
     
-    check that timestamp is not stale; it must be newer than the previous timestamp seen from the given sender
+    //check that timestamp is not stale; it must be newer than the previous timestamp seen from the given sender
     var timestamp = parseInt(timestamp_str);
     var prev_timestamp = getPrevTimestamp(sender_id);
     if (timestamp <= prev_timestamp) {
