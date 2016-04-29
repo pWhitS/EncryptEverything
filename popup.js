@@ -113,7 +113,10 @@ function decryptSelectedText() {
       swal("Error", "No private key found", "error");
       return;
     }
+    
+    //grab the selected text and trim leading and trailing whitespace
     var buf = selectedText.toString();
+    buf = buf.trim();
 
     //Selected text must be at least 5 RSA blocks
     if (buf.length < G_RSA_BLOCK_SIZE*5) { 
