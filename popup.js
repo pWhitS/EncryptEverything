@@ -51,7 +51,7 @@ var G_RSA_BLOCK_SIZE = 344; //scales linearly with key size. 2048 key - 344
 **/
 function decryptSelectedText() {
   //localStorage.setItem("EE-Private-Key", document.getElementById("sec").value);
-  var prikey = localStorage.getItem("EE-Private-Key");
+    var enc_prikey = JSON.parse(localStorage.getItem("EE-Private-Key"));
   //var prikey = document.getElementById("sec").value; //replace with localStorage
 
   getSelectedText(function(selectedText) {
@@ -63,6 +63,13 @@ function decryptSelectedText() {
       swal("Error", "No selected text!", "error");
       return;
     }
+
+    //swal({title: "Input Password", type:"input"}, function(inputValue){window.password = inputValue});
+    password = prompt("Input password to decrypt");
+    console.log(password);
+    //swal("Tacos");
+    
+    prikey = sjcl.decrypt(password, enc_prikey);
 
     //Break up the pieces of encrypted the blob
     var enc_key = buf.substring(0, G_RSA_BLOCK_SIZE);
