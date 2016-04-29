@@ -217,7 +217,8 @@ function showPublicKeys() {
   var buttons = document.getElementById("buttons");
 
   //get the keylist from localStorage
-  var keyList = JSON.parse(localStorage.getItem("keyList"));
+  var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
+  console.log(keyList);
   if (keyList == null) {
     swal("Error", "No public keys...", "error");
     return;
@@ -251,7 +252,7 @@ function selectPublicKey() {
   if (keyname == "NONE") {
     return;
   }
-  var keyList = JSON.parse(localStorage.getItem("keyList"));
+  var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
   var key = keyList[keyname]; 
 
   encryptSelectedText(key); //call encryption routine with key name
