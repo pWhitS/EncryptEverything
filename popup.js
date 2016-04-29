@@ -24,6 +24,12 @@ function openKeyManagerTab() {
   });
 }
 
+function openSafeWindowTab() {
+  chrome.tabs.create({'url': chrome.extension.getURL('safe.html')}, function(tab) {
+    //tab code?
+  });
+}
+
 //--- RSA Encryption Wrappers ---//
 function RSAEncrypt(buffer, pubkey) {
   var enc = new JSEncrypt();
@@ -484,9 +490,9 @@ function closeKeySelect() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById("safe-window").onclick = openSafeWindowTab;
   document.getElementById("import").onclick = openKeyManagerTab;
   document.getElementById("decrypt").onclick = decryptSelectedText;
-
   document.getElementById("encrypt").onclick = showPublicKeys;
   document.getElementById("pubkey-button-select").onclick = selectPublicKey;
   document.getElementById("pubkey-button-cancel").onclick = closeKeySelect;
