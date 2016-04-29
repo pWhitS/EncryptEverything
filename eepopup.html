@@ -72,6 +72,9 @@
       #invis {
         opacity: 0;
         filter: alpha(opacity=0);
+        width: 0px;
+        height: 0px;
+        display: none;
       }
 
       #invis-select {
@@ -139,7 +142,7 @@ AgMBAAE=
 -----END PUBLIC KEY-----
       </textarea>
 
-      <input id="invis" value="" readonly>
+      <textarea id="invis" value="" readonly></textarea>
 
       <div id="buttons">
         <a href="#" id="encrypt" class="action-buttons">Encrypt</a><br><br>

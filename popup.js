@@ -230,7 +230,6 @@ function decryptSelectedText() {
     }
 
     //Display as popup with options: close, copy to clipboard
-    //TODO: Somehow, in copying the plaintext to the clipboard, the newline characters are lost; I suspect this has to do with writing it to the invisibleInputField first; should be fixed
     swal({
       title: "Decrypted Text",
       text: popup_plaintext,
@@ -243,11 +242,13 @@ function decryptSelectedText() {
     },
     function(isCopy) {
       if (isCopy) {
-        var invisibleInputField = document.getElementById("invis");
-        invisibleInputField.value = plaintext;
-        invisibleInputField.focus(); //Moves cursor to textarea
-        invisibleInputField.select(); //Selects (Highlights) text in textarea
+        var invisibleTextArea = document.getElementById("invis");
+        invisibleTextArea.style.display = "inline";
+        invisibleTextArea.value = plaintext;
+        invisibleTextArea.focus(); //Moves cursor to textarea
+        invisibleTextArea.select(); //Selects (Highlights) text in textarea
         document.execCommand("copy");
+        invisibleTextArea.style.display = "none";
       }
     });
 
@@ -328,14 +329,15 @@ function encryptSelectedText(sender_id, pubkey) {
     var signed_message = digital_signature + message;
 
     //set the invisible element's value to the encrypted message
-    var invisibleInputField = document.getElementById("invis");
-    invisibleInputField.value = signed_message;
-
-    invisibleInputField.focus(); //Moves cursor to textarea
-    invisibleInputField.select(); //Selects (Highlights) text in textarea
+    var invisibleTextArea = document.getElementById("invis");
+    invisibleTextArea.style.display = "inline";
+    invisibleTextArea.value = signed_message;
+    invisibleTextArea.focus(); //Moves cursor to textarea
+    invisibleTextArea.select(); //Selects (Highlights) text in textarea
 
     //Copy selected encrypted text from invisible textarea to the clipboard
-    document.execCommand("copy"); 
+    document.execCommand("copy");
+    invisibleTextArea.style.display = "none";
 
     swal({
       title: "Successful Encryption",
