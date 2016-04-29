@@ -69,7 +69,7 @@ function digestsAreEqual(digest1, digest2) {
 
 // grabs timestamps from localStorage using sender_id as key; returns null if no previous timestamp for sender_id
 function getPrevTimestamp(sender_id) {
-  var timelist_str = localStorage.getItem("EE-timeList");
+  var timelist_str = localStorage.getItem(EE_TIMELIST);
   if (timelist_str == null) {
     return null;
   }
@@ -82,7 +82,7 @@ function getPrevTimestamp(sender_id) {
 
 // updates timestamp of most recent message from sender_id to storage
 function updateTimestamp(timestamp, sender_id) {
-  var timelist_str = localStorage.getItem("EE-timeList");
+  var timelist_str = localStorage.getItem(EE_TIMELIST);
   var timelist = null;
   if (timelist_str == null) {
     timelist = {};
@@ -90,11 +90,15 @@ function updateTimestamp(timestamp, sender_id) {
     timelist = JSON.parse(timelist_str);
   }
   timelist[sender_id] = timestamp.toString();
-  localStorage.setItem("EE-timeList", JSON.stringify(timelist));
+  localStorage.setItem(EE_TIMELIST, JSON.stringify(timelist));
 }
 
-
+//--- set some constants ---
 var G_RSA_BLOCK_SIZE = 344; //scales linearly with key size. 2048 key - 344
+var EE_KEYLIST = "EE-keyList";
+var EE_TIMELIST = "EE-timeList";
+var EE_PRIVATE = "EE-Private-Key";
+var EE_USER_ID = "EE-User-ID";
 
 //Fucntion decrypts highlighted text
 /**
@@ -121,7 +125,7 @@ function decryptSelectedText() {
 
 function decryptSubroutine(pwd) {
   // get private key for signing
-  var enc_prikey_str = localStorage.getItem("EE-Private-Key");
+  var enc_prikey_str = localStorage.getItem(EE_PRIVATE);
   var enc_prikey = JSON.parse(enc_prikey_str);
   var prikey = null;
   try {
@@ -171,7 +175,7 @@ function decryptSubroutine(pwd) {
     }
     
     // get public key of sender
-    var keylist = JSON.parse(localStorage.getItem("EE-keyList"));
+    var keylist = JSON.parse(localStorage.getItem(EE_KEYLIST));
     var pubkey = keylist[sender_id];
     console.log(pubkey);
     
@@ -328,7 +332,7 @@ function encryptSelectedText(pubkey) {
 
 function encryptSubroutine(pubkey, pwd) {
   // get private key for signing
-  var enc_prikey_str = localStorage.getItem("EE-Private-Key");
+  var enc_prikey_str = localStorage.getItem(EE_PRIVATE);
   var enc_prikey = JSON.parse(enc_prikey_str);
   var prikey = null;
   try {
@@ -343,7 +347,7 @@ function encryptSubroutine(pubkey, pwd) {
   }
   
   //get the sender's ID
-  var sender_id = localStorage.getItem("EE-User-ID");
+  var sender_id = localStorage.getItem(EE_USER_ID);
   
   if (sender_id == null || sender_id.length == 0) {
     swal("Error","Cannot locate your ID. Please go to Manage and re-enter your ID, private key and password","error");
@@ -435,7 +439,7 @@ function showPublicKeys() {
   var buttons = document.getElementById("buttons");
 
   //get the keylist from localStorage
-  var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
+  var keyList = JSON.parse(localStorage.getItem(EE_KEYLIST));
   console.log(keyList);
   if (keyList == null) {
     swal("Error", "No public keys...", "error");
@@ -470,7 +474,7 @@ function selectPublicKey() {
   if (keyname == "NONE") {
     return;
   }
-  var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
+  var keyList = JSON.parse(localStorage.getItem(EE_KEYLIST));
   var key = keyList[keyname]; 
 
   encryptSelectedText(key); //call encryption routine with key name

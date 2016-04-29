@@ -3,12 +3,16 @@ var dPrivateKey = 2;
 
 var gKeyType = dPublicKey;
 
-
+//--- set some constants ---
+var EE_KEYLIST = "EE-keyList";
+var EE_TIMELIST = "EE-timeList";
+var EE_PRIVATE = "EE-Private-Key";
+var EE_USER_ID = "EE-User-ID";
 
 function addPublicKey() {
   var keyList = {};
-  if (localStorage.getItem("EE-keyList") != null) {
-      keyList = JSON.parse(localStorage.getItem("EE-keyList"));
+  if (localStorage.getItem(EE_KEYLIST) != null) {
+      keyList = JSON.parse(localStorage.getItem(EE_KEYLIST));
   } 
 
   var name = document.getElementById("pub-name").value;
@@ -16,7 +20,7 @@ function addPublicKey() {
   var key = document.getElementById("pubKey").value;
   key = key.trim();
   keyList[name] = key;
-  localStorage.setItem("EE-keyList", JSON.stringify(keyList));
+  localStorage.setItem(EE_KEYLIST, JSON.stringify(keyList));
   location.reload();
 }
 
@@ -28,26 +32,26 @@ function addPrivateKey() {
   var user_id = document.getElementById("pri-name").value;
   user_id = user_id.trim();
   var encKey = sjcl.encrypt(password, privKey);
-  localStorage.setItem("EE-Private-Key", JSON.stringify(encKey));
-  localStorage.setItem("EE-User-ID", user_id);
+  localStorage.setItem(EE_PRIVATE, JSON.stringify(encKey));
+  localStorage.setItem(EE_USER_ID, user_id);
   location.reload();
 }
 
 function deletePublicKey() {
   var key = document.getElementById("deleteKey").value;
-  var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
+  var keyList = JSON.parse(localStorage.getItem(EE_KEYLIST));
   delete keyList[key];
   console.log("Entry for "+key+" has been removed");
   
-  localStorage.setItem("EE-keyList", JSON.stringify(keyList));
+  localStorage.setItem(EE_KEYLIST, JSON.stringify(keyList));
   location.reload();
 }
 
 function init() {
-  if (localStorage.getItem("EE-keyList") === null) {
+  if (localStorage.getItem(EE_KEYLIST) === null) {
     return;
   }
-  var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
+  var keyList = JSON.parse(localStorage.getItem(EE_KEYLIST));
   var keys = Object.keys(keyList);
 
   var select = document.getElementById("deleteKey");
