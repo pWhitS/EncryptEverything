@@ -144,7 +144,9 @@ function decryptSubroutine(pwd) {
     
     //grab the selected text and trim leading and trailing whitespace
     var buf = selectedText.toString();
-    buf = buf.trim();
+//    buf = buf.trim();
+    buf = buf.replace(/\s/g, buf);
+    console.log(buf);
 
     //Selected text must be at least 5 RSA blocks
     if (buf.length < G_RSA_BLOCK_SIZE*5) { 
@@ -158,6 +160,7 @@ function decryptSubroutine(pwd) {
     
     // Decrypt the sender_id with the recipient's private jey
     var sender_id = RSADecrypt(enc_sender_id, prikey);
+    console.log(sender_id);
     
     // Check if decryption failed
     // TODO allow the user to bypass if just decrypting sender_id fails
@@ -169,6 +172,7 @@ function decryptSubroutine(pwd) {
     // get public key of sender
     var keylist = JSON.parse(localStorage.getItem("EE-keyList"));
     var pubkey = keylist[sender_id];
+    console.log(pubkey);
     
     // check if we have the sender's public key
     // TODO allow the user to bypass the integrity/auth check if desired
@@ -177,8 +181,10 @@ function decryptSubroutine(pwd) {
       return;
     }
     
+    console.log(digital_signature);
     // decrypt the signature using the sender's public RSA key to get the hash calculated by the sender
     var received_message_digest_str = RSAVerify(digital_signature, pubkey);
+    console.log(received_message_digest_str);
     var received_message_digest = sjcl.codec.hex.toBits(received_message_digest_str);
     
     // calculate a hash directly on the message
@@ -299,7 +305,7 @@ function decryptSubroutine(pwd) {
   - IV
 5. Append message ciphertext to the end
 **/ 
-function encryptSelectedText(sender_id, pubkey) {  
+function encryptSelectedText(pubkey) {  
   if (pubkey == null || pubkey.length == 0) {
     swal("Error", "No public key found for the following ID: " + sender_id, "error");
     return;
@@ -315,11 +321,11 @@ function encryptSelectedText(sender_id, pubkey) {
     if (inputValue === false) {
       return false;
     }
-    encryptSubroutine(sender_id, pubkey, inputValue);
+    encryptSubroutine(pubkey, inputValue);
   });
 }
 
-function encryptSubroutine(sender_id, pubkey, pwd) {
+function encryptSubroutine(pubkey, pwd) {
   // get private key for signing
   var enc_prikey_str = localStorage.getItem("EE-Private-Key");
   var enc_prikey = JSON.parse(enc_prikey_str);
@@ -332,6 +338,14 @@ function encryptSubroutine(sender_id, pubkey, pwd) {
   }
   if (prikey == null) {
     invalidPassword();
+    return;
+  }
+  
+  //get the sender's ID
+  var sender_id = localStorage.getItem("EE-User-ID");
+  
+  if (sender_id == null || sender_id.length == 0) {
+    swal("Error","Cannot locate your ID. Please go to Manage and re-enter your ID, private key and password","error");
     return;
   }
 
@@ -458,7 +472,7 @@ function selectPublicKey() {
   var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
   var key = keyList[keyname]; 
 
-  encryptSelectedText(keyname, key); //call encryption routine with key name
+  encryptSelectedText(key); //call encryption routine with key name
   closeKeySelect(); //resets the display
 }
 

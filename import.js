@@ -11,8 +11,10 @@ function addPublicKey() {
       keyList = JSON.parse(localStorage.getItem("EE-keyList"));
   } 
 
-  var name = document.getElementById("name").value;
+  var name = document.getElementById("pub-name").value;
+  name = name.trim();
   var key = document.getElementById("pubKey").value;
+  key = key.trim();
   keyList[name] = key;
   localStorage.setItem("EE-keyList", JSON.stringify(keyList));
   location.reload();
@@ -20,9 +22,14 @@ function addPublicKey() {
 
 function addPrivateKey() {
   var privKey = document.getElementById("privKey").value;
+  privKey = privKey.trim();
   var password = document.getElementById("password").value;
+  password = password.trim();
+  var user_id = document.getElementById("pri-name").value;
+  user_id = user_id.trim();
   var encKey = sjcl.encrypt(password, privKey);
   localStorage.setItem("EE-Private-Key", JSON.stringify(encKey));
+  localStorage.setItem("EE-User-ID", user_id);
   location.reload();
 }
 
