@@ -1,5 +1,5 @@
 /*
-Author(s): Casey McGinley, Patrick Whitsell, Fernando Maymi
+Modified by: Casey McGinley, Patrick Whitsell, Fernando Maymi
 Course: CS-GY 6903 Applied Cryptography
 Instructor: Prof. Giovanni Di Crescenzo
 Semester: Spring 2016
