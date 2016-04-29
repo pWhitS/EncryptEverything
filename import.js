@@ -15,9 +15,7 @@ function addPublicKey() {
   var key = document.getElementById("pubKey").value;
   keyList[name] = key;
   localStorage.setItem("EE-keyList", JSON.stringify(keyList));
-  console.log("Added " +name+ " with key "+key+"\nThere are now " + Object.keys(keyList).length + " keys.");
-  //alert(JSON.stringify(keyList));
-  location.reload()
+  location.reload();
 }
 
 function addPrivateKey() {
@@ -25,6 +23,7 @@ function addPrivateKey() {
   var password = document.getElementById("password").value;
   var encKey = sjcl.encrypt(password, privKey);
   localStorage.setItem("EE-Private-Key", JSON.stringify(encKey));
+  location.reload();
 }
 
 function deletePublicKey() {
