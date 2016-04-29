@@ -31,7 +31,11 @@ function addPrivateKey() {
   password = password.trim();
   var user_id = document.getElementById("pri-name").value;
   user_id = user_id.trim();
-  var encKey = sjcl.encrypt(password, privKey);
+  
+  //setting AES key size
+  var params = {};
+  params["ks"] = 256; //AES-256 key
+  var encKey = sjcl.encrypt(password, privKey, params);
   localStorage.setItem(EE_PRIVATE, JSON.stringify(encKey));
   localStorage.setItem(EE_USER_ID, user_id);
   location.reload();
