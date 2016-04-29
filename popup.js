@@ -158,6 +158,12 @@ function decryptSelectedText() {
     var enc_timestamp_str = buf.substring(G_RSA_BLOCK_SIZE*2, G_RSA_BLOCK_SIZE*3);
     var timestamp_str = RSADecrypt(enc_timestamp_str, prikey);
     
+    // Check if decryption failed
+    if (timestamp_str == null) {
+      swal("Decryption Failed", "The message could not be decrypted", "error");
+      return;
+    }
+    
     //check that timestamp is not stale; it must be newer than the previous timestamp seen from the given sender
     var timestamp = parseInt(timestamp_str);
     var prev_timestamp = getPrevTimestamp(sender_id);
@@ -399,59 +405,6 @@ function closeKeySelect() {
   document.getElementById("buttons").style.visibility = "visible";
 }
 
-
-//Assumes ciphertext structure:
-/*
-344 - AES key
-344 - AES IV
-XXX - Message
-344 - Signature over sha256
-*/
-function verifySelectedtext() {
-  var pubkey = document.getElementById("pub").value; //replace with localStorage
-  if (pubkey == null || pubkey.length == 0) {
-    swal("Error", "No public key found!", "error");
-    return;
-  }
-
-  getSelectedText(function(selectedText) {
-    var buf = selectedText.toString();
-    var clength = buf.length;
-    // if (buf == null || clength == 0) {
-    //   swal("Error", "No text selected!", "error");
-    //   return;
-    // }
-
-    var signature = buf.substring(clength - G_RSA_BLOCK_SIZE);
-    var ciphertext = buf.substring(0, clength - G_RSA_BLOCK_SIZE)
-
-    var sig_hash = RSADecrypt(signature, pubkey);
-    var verify_hash = sjcl.hash.sha256.hash(ciphertext);
-    verify_hash = sjcl.codec.base64.fromBits(verify_hash);
-
-    console.log("SIG: " + signature);
-    console.log("CIPHERTEXT: " + ciphertext);
-    console.log(sig_hash + " -- " + verify_hash);
-
-    if (sig_hash == verify_hash) {
-      swal({
-        title: "Verified!",
-        text: "",
-        timer: 2000,
-        showConfirmButton: true
-      });
-    }
-    else {
-      swal({
-        title: "Verification Failed!",
-        text: "Message is from an untrusted sender",
-        showConfirmButton: true,
-        type: "error"
-      });
-    }
-  });
-}
-
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById("import").onclick = openKeyManagerTab;
   document.getElementById("decrypt").onclick = decryptSelectedText;
@@ -459,8 +412,6 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById("encrypt").onclick = showPublicKeys;
   document.getElementById("pubkey-button-select").onclick = selectPublicKey;
   document.getElementById("pubkey-button-cancel").onclick = closeKeySelect;
-
-  document.getElementById("verify").onclick = verifySelectedtext;
 
   //renderStatus("Initializing......");
 
