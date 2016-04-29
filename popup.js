@@ -104,8 +104,36 @@ var G_RSA_BLOCK_SIZE = 344; //scales linearly with key size. 2048 key - 344
 4. Display text to user, allow copy to clipboard
 **/
 function decryptSelectedText() {
-  //localStorage.setItem("EE-Private-Key", document.getElementById("sec").value);
-  var prikey = localStorage.getItem("EE-Private-Key");
+  swal({
+    title: "Password",
+    text: "Please provide the password you used to encrypt your private key",
+    type: "input",
+    showCancelButton: true,
+    closeOnConfirm: false,
+  },
+  function(inputValue){
+    if (inputValue === false) {
+      return false;
+    }
+    decryptSubroutine(inputValue);
+  });
+}
+
+function decryptSubroutine(pwd) {
+  // get private key for signing
+  var enc_prikey_str = localStorage.getItem("EE-Private-Key");
+  var enc_prikey = JSON.parse(enc_prikey_str);
+  var prikey = null;
+  try {
+    prikey = sjcl.decrypt(pwd, enc_prikey);
+  } catch(ex) {
+    invalidPassword();
+    return;
+  }
+  if (prikey == null) {
+    invalidPassword();
+    return;
+  }
 
   getSelectedText(function(selectedText) {
     // sanity check that the user has uploaded their private key
@@ -276,8 +304,36 @@ function encryptSelectedText(sender_id, pubkey) {
     swal("Error", "No public key found for the following ID: " + sender_id, "error");
     return;
   }
+  swal({
+    title: "Password",
+    text: "Please provide the password you used to encrypt your private key",
+    type: "input",
+    showCancelButton: true,
+    closeOnConfirm: false,
+  },
+  function(inputValue){
+    if (inputValue === false) {
+      return false;
+    }
+    encryptSubroutine(sender_id, pubkey, inputValue);
+  });
+}
+
+function encryptSubroutine(sender_id, pubkey, pwd) {
   // get private key for signing
-  var prikey = localStorage.getItem("EE-Private-Key");
+  var enc_prikey_str = localStorage.getItem("EE-Private-Key");
+  var enc_prikey = JSON.parse(enc_prikey_str);
+  var prikey = null;
+  try {
+    prikey = sjcl.decrypt(pwd, enc_prikey);
+  } catch(ex) {
+    invalidPassword();
+    return;
+  }
+  if (prikey == null) {
+    invalidPassword();
+    return;
+  }
 
   var aeskey = sjcl.random.randomWords(8); //8 * 32 == 256 bits
   var aes_key_str = sjcl.codec.base64.fromBits(aeskey);
@@ -350,6 +406,11 @@ function encryptSelectedText(sender_id, pubkey) {
       showConfirmButton: true
     })
   });
+}
+
+// Displays alert for invalid password when decrypting private key
+function invalidPassword() {
+  swal("Error","The password you entered is invalid","error");
 }
 
 //Puts the public keys into the select list
