@@ -145,8 +145,9 @@ function decryptSubroutine(pwd) {
     //grab the selected text and trim leading and trailing whitespace
     var buf = selectedText.toString();
 //    buf = buf.trim();
-    buf = buf.replace(/\s/g, buf);
-    console.log(buf);
+    console.log(buf.length);
+    buf = buf.replace(/\s/g, "");
+    console.log(buf.length);
 
     //Selected text must be at least 5 RSA blocks
     if (buf.length < G_RSA_BLOCK_SIZE*5) { 
