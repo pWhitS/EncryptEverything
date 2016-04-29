@@ -1,3 +1,16 @@
+/*
+Author(s): Casey McGinley, Patrick Whitsell, Fernando Maymi
+Course: CS-GY 6903 Applied Cryptography
+Instructor: Prof. Giovanni Di Crescenzo
+Semester: Spring 2016
+
+A copy of the JSEncrypt library which we slightly modified to allow us to 
+encrypt with private keys and decrypt with public for the purposes of 
+implementing digital signatures. 
+
+Source: https://github.com/travist/jsencrypt
+*/
+
 var JSEncryptExports = {};
 (function(exports) {
 // Copyright (c) 2005  Tom Wu

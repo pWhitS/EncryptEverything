@@ -1,3 +1,14 @@
+/*
+Author(s): Casey McGinley, Patrick Whitsell, Fernando Maymi
+Course: CS-GY 6903 Applied Cryptography
+Instructor: Prof. Giovanni Di Crescenzo
+Semester: Spring 2016
+
+The core program logic. Hooks callbacks on button presses, as well as 
+performing encryption, decryption, signing, verifying, and timestamping on 
+supplied messages.
+*/
+
 function getSelectedText(callback) {
   var queryInfo = {
     active: true,

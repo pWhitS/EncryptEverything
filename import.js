@@ -1,3 +1,13 @@
+/*
+Author(s): Fernando Maymi, Patrick Whitsell, Casey McGinley
+Course: CS-GY 6903 Applied Cryptography
+Instructor: Prof. Giovanni Di Crescenzo
+Semester: Spring 2016
+
+Handles the loading and deleting of public and private RSA keys on the "Manage" 
+page (import.html) to and from localStorage
+*/
+
 var dPublicKey = 1;
 var dPrivateKey = 2;
 
