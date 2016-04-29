@@ -155,7 +155,7 @@ function decryptSubroutine(pwd) {
 
     //Selected text must be at least 5 RSA blocks
     if (buf.length < G_RSA_BLOCK_SIZE*5) { 
-      swal("Error", "No selected text!", "error");
+      swal("Error", "Invalid ciphertext!", "error");
       return;
     }
     
