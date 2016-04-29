@@ -42,14 +42,13 @@ function deletePublicKey() {
 }
 
 function init() {
-  //localStorage.removeItem("keyList");
-  var select = document.getElementById("deleteKey");
-  var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
-  if (keyList == null) {
+  if (localStorage.getItem("EE-keyList") === null) {
     return;
   }
+  var keyList = JSON.parse(localStorage.getItem("EE-keyList"));
   var keys = Object.keys(keyList);
 
+  var select = document.getElementById("deleteKey");
   for (var i=0; i < keys.length; i++) {
     var opt = keys[i]; 
     var el = document.createElement("option");
