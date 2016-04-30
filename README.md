@@ -4,21 +4,21 @@
 This is a Chrome extenxion implementing PGP style encryption capabilities. It can be used to encrypt text in any web-based medium and decrypt the result.
 
 ## Who made it?
-This project was a collaboration by Patrick Whitsell (pdw236@nyu.edu), Casey McGinley (cmm771@nyu.edu), and Fernando Maymi (fernando.maymi@nyu.edu). The extension was made as part of their Applied Cryptography (CS-GY 6903) class taught by Prof. Giovanni Di Crescenzo
+This project was a collaboration by **Patrick Whitsell** (pdw236@nyu.edu), **Casey McGinley** (cmm771@nyu.edu), and **Fernando Maymi** (fernando.maymi@nyu.edu). The extension was made as part of their **Applied Cryptography (CS-GY 6903)** class taught by **Prof. Giovanni Di Crescenzo**
 
 ## What external libraries/sources does it use?
-- Stanford Javascript Crypto Library (sjcl)
+- **Stanford Javascript Crypto Library (sjcl)**
   - used for symmetric encryption of payloads (AES-256 CCM), hashing (SHA256), encoding (hex, base64, etc.) and a few other things
   - https://github.com/bitwiseshiftleft/sjcl
   - Configured with:
 ```
 ./configure --without-all --with-aes --with-ctr --with-sha256 --with-random --with-hmac --with-codecBase64 --with-codecHex --with-bitArray --with-convenience
 ```
-- JSEncrypt
+- **JSEncrypt**
   - used for asymmetric encryption for the purposes of key exchange and digital signatures (RSA 2048-bit keys)
   - we modified this slightly to allow us to encrypt with a private key
   - https://github.com/travist/jsencrypt
-- SweetAlert
+- **SweetAlert**
   - used for aesthetics
   - https://t4t5.github.io/sweetalert/
 
