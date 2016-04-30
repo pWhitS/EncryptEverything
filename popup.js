@@ -9,6 +9,7 @@ performing encryption, decryption, signing, verifying, and timestamping on
 supplied messages.
 */
 
+// Grabs currently highlighted text
 function getSelectedText(callback) {
   var queryInfo = {
     active: true,
@@ -22,10 +23,7 @@ function getSelectedText(callback) {
   });
 }
 
-function renderStatus(statusText) {
-  document.getElementById('status').textContent = statusText;
-}
-
+// Opens a new tab; used to open our RSA key management screen
 function openKeyManagerTab() {
   chrome.tabs.create({'url': chrome.extension.getURL('import.html')}, function(tab) {
     //tab code?
@@ -33,13 +31,14 @@ function openKeyManagerTab() {
 }
 
 //--- RSA Encryption Wrappers ---//
+// Wraps the JSEncrypt encrypt function; should only be used with public keys
 function RSAEncrypt(buffer, pubkey) {
   var enc = new JSEncrypt();
   enc.setPublicKey(pubkey);
   var ciphertext = enc.encrypt(buffer,false);
   return ciphertext;
 }
-
+// Wraps the JSEncrypt decrypt function; should only be used with private keys
 function RSADecrypt(buffer, prikey) {
   var dec = new JSEncrypt();
   dec.setPrivateKey(prikey);
@@ -48,13 +47,18 @@ function RSADecrypt(buffer, prikey) {
 }
 
 //--- RSA Signature Wrappers ---//
+// Wraps the JSEncrypt encrypt function and passes a special argument in order
+// to trigger the portion of JSEncrypt we modified. This allows us to encrypt
+// with a private key (JSEncrypt support encryption by public key only by 
+// default) for the purpose of signing.
 function RSASign(digest, prikey) {
   var enc = new JSEncrypt();
   enc.setPrivateKey(prikey);
   var signature = enc.encrypt(digest,true);
   return signature;
 }
-
+// Wraps the JSEncrypt decrypt function, but calls the modified code to allow 
+// us to decrypt with a public key in order to verfiy a signature.
 function RSAVerify(signature, pubkey) {
   var dec = new JSEncrypt()
   dec.setPublicKey(pubkey);
@@ -62,7 +66,8 @@ function RSAVerify(signature, pubkey) {
   return digest;
 }
 
-// takes two digests as bitArrays (from sjcl) and compares the value by value to determine equality
+// Takes two digests as bitArrays (from sjcl) and compares the value by value 
+// to determine equality. Returns a Boolean
 function digestsAreEqual(digest1, digest2) {
   if (digest1.length != digest2.length) {
     return false;
@@ -75,7 +80,8 @@ function digestsAreEqual(digest1, digest2) {
   return true;
 }
 
-// grabs timestamps from localStorage using sender_id as key; returns null if no previous timestamp for sender_id
+// Grabs timestamps from localStorage using sender_id as key; returns null if 
+// no previous timestamp for sender_id
 function getPrevTimestamp(sender_id) {
   var timelist_str = localStorage.getItem(EE_TIMELIST);
   if (timelist_str == null) {
@@ -88,7 +94,7 @@ function getPrevTimestamp(sender_id) {
   return null;
 }
 
-// updates timestamp of most recent message from sender_id to storage
+// Updates timestamp of most recent message from sender_id to storage
 function updateTimestamp(timestamp, sender_id) {
   var timelist_str = localStorage.getItem(EE_TIMELIST);
   var timelist = null;
@@ -111,11 +117,16 @@ var EE_USER_ID = "EE-User-ID";
 //Fucntion decrypts highlighted text
 /**
 1. Get RSA private key from local storage
-2. Decrypt AES key and IV
-3. Decrypt AES ciphertext
-4. Display text to user, allow copy to clipboard
+2. Decrypt sender ID 
+3. Get RSA public key of sender from local storage using ID
+4. Use public key to verify the digital signature (signed hash)
+5. Decrypt timestamp and check if message is stale (e.g. replay attack)
+6. Decrypt AES key and IV
+7. Decrypt AES ciphertext
+8. Display text to user, allow copy to clipboard
 **/
 function decryptSelectedText() {
+  // Prompt the user for their password
   swal({
     title: "Password",
     text: "Please provide the password you used to encrypt your private key",
@@ -124,17 +135,22 @@ function decryptSelectedText() {
     closeOnConfirm: false,
   },
   function(inputValue){
+    // do nothing on cancel
     if (inputValue === false) {
       return false;
     }
+    // attempt decryption with provided password
     decryptSubroutine(inputValue);
   });
 }
 
+// Subroutine for decryption separated for the purpose of readbility
 function decryptSubroutine(pwd) {
   // get private key for signing
   var enc_prikey_str = localStorage.getItem(EE_PRIVATE);
   var enc_prikey = JSON.parse(enc_prikey_str);
+
+  // attempt to decrypt private key and report if password is invalid
   var prikey = null;
   try {
     prikey = sjcl.decrypt(pwd, enc_prikey);
@@ -147,6 +163,7 @@ function decryptSubroutine(pwd) {
     return;
   }
 
+  // grab the highlighted text and perform decryption
   getSelectedText(function(selectedText) {
     // sanity check that the user has uploaded their private key
     if (prikey == null || prikey.length == 0) {
@@ -154,13 +171,17 @@ function decryptSubroutine(pwd) {
       return;
     }
     
-    //grab the selected text and trim leading and trailing whitespace
+    // grab the selected text
     var buf = selectedText.toString();
+
     //check for no text selected
     if (buf.length == 0 || buf == null) { 
       swal("Error", "No text selected!", "error");
       return;
     }
+
+    // remove whitespace; helps with leading/trailing whitespace as well as 
+    // unintentional new lines introduced by text editors
     buf = buf.replace(/\s/g, "");
 
     //Selected text must be at least 5 RSA blocks
@@ -169,7 +190,8 @@ function decryptSubroutine(pwd) {
       return;
     }
     
-    // grab the digital signature from the encrypted blob
+    // grab the digital signature and the encrypted sender ID from the 
+    // encrypted blob
     var digital_signature = buf.substring(0, G_RSA_BLOCK_SIZE);
     var enc_sender_id = buf.substring(G_RSA_BLOCK_SIZE, G_RSA_BLOCK_SIZE*2);
     
@@ -177,7 +199,6 @@ function decryptSubroutine(pwd) {
     var sender_id = RSADecrypt(enc_sender_id, prikey);
     
     // Check if decryption failed
-    // TODO allow the user to bypass if just decrypting sender_id fails
     if (sender_id == null || sender_id == false) {
       swal("Decryption Failed", "The message could not be decrypted", "error");
       return;
@@ -188,21 +209,25 @@ function decryptSubroutine(pwd) {
     var pubkey = keylist[sender_id];
     
     // check if we have the sender's public key
-    // TODO allow the user to bypass the integrity/auth check if desired
     if (pubkey == null || pubkey.length == 0) {
       swal("Error", "No public key found for the following ID: " + sender_id, "error");
       return;
     }
     
-    // decrypt the signature using the sender's public RSA key to get the hash calculated by the sender
+    // decrypt the signature using the sender's public RSA key to get the hash 
+    // calculated by the sender
     var received_message_digest_str = RSAVerify(digital_signature, pubkey);
+
+    // check if verification was a success
     if (received_message_digest_str == null || received_message_digest_str == false) {
       swal("Verification Failed", "The signature could not be authenticated", "error");
       return;
     }
+
+    // convert digest to bit representation
     var received_message_digest = sjcl.codec.hex.toBits(received_message_digest_str);
     
-    // calculate a hash directly on the message
+    // calculate our own hash directly on the message
     var message = buf.substring(G_RSA_BLOCK_SIZE);
     var calculated_message_digest = sjcl.hash.sha256.hash(message);
     
@@ -216,22 +241,25 @@ function decryptSubroutine(pwd) {
       return;
     }
     
-    //check that timestamp is not stale; it must be newer than the previous timestamp seen from the given sender
+    //check that timestamp is not stale; it must be newer than the previous 
+    // timestamp seen from the given sender
     var timestamp = parseInt(timestamp_str);
     var prev_timestamp = getPrevTimestamp(sender_id);
     if (timestamp <= prev_timestamp) {
       swal("Error","Stale timestamp, possible replay attack","error");
       return;
     }
+
+    // update the timestamp to prevent replays
     updateTimestamp(timestamp, sender_id);
     
-    // if digests are not equal, then the message is either not authentic or it was modified in transit
+    // if digests are not equal, then the message is either not authentic or it 
+    // was modified in transit; if so, we report to the user and end the 
+    // decryption attempt
     if (!(digestsAreEqual(calculated_message_digest, received_message_digest))) {
-      //Display as popup window reporting failed integrity/auth check
       swal("Error","Message failed integrity/authenticity checks. Could not verify signature of sender.","error");
       return;
     }
-    // if we pass the previous if-block, digests are equal, authenticity and integrity has been verified
     
     //Break up the rest of the pieces of encrypted data from the message blob
     var enc_key = buf.substring(G_RSA_BLOCK_SIZE*3, G_RSA_BLOCK_SIZE*4);
@@ -253,8 +281,8 @@ function decryptSubroutine(pwd) {
     var iv = sjcl.codec.base64.toBits(iv_str);
     var ciphertext = sjcl.codec.base64.toBits(ciphertext_str);
 
-    //These are parameters to the decrypt function. 
-    //Must match parameters given to encrypt
+    // These are parameters to the decrypt function. 
+    // Must match parameters given to encrypt
     var ct_json = {};
     ct_json["cipher"] = "aes";
     ct_json["ct"] = ciphertext;
@@ -267,6 +295,7 @@ function decryptSubroutine(pwd) {
     ct_json["mode"] = "ccm";
     var ct_json_str = sjcl.json.encode(ct_json); //Convert JSON to string
 
+    // attempt to decrypt and check if decryption failed
     var plaintext = null;
     try {
       plaintext = sjcl.decrypt(aeskey, ct_json_str); //Do the decryption
@@ -279,7 +308,8 @@ function decryptSubroutine(pwd) {
       return;
     }
 
-    //truncate plaintext that gets displayed in the popup if too big (>150 chars)
+    // truncate plaintext that gets displayed in the popup if too big (>150 
+    // chars)
     if (plaintext.length > 150) {
       var popup_plaintext = plaintext.substring(0,150) + " ...";
     } else {
@@ -313,21 +343,29 @@ function decryptSubroutine(pwd) {
 }
 
 
-//Fucntion encrypts highlighted text
+//Function encrypts highlighted text
 /**
-1. Get RSA public key from local storage
-2. Generate random string for AES key
-3. Get the selected text and encrypt it with AES
-4. Encrypt with RSA: (All will be 172 bytes each)
+1. Take given RSA public key
+2. Decrypt private key from local storage
+3. Get the user's ID from local storage
+4. Generate random string for AES key (8 words, 256 bits)
+5. Get the selected text and encrypt it with AES
+6. Encrypt with public key: (All will be 344 bytes each when encrypted)
+  - user ID
+  - timestamp
   - AES key
   - IV
-5. Append message ciphertext to the end
+7. Prepend these encrypted fields to the ciphertext to form
+8. Hash the result of step 7, and sign using the private key
+9. Prepend the signature to the result of step 7
+10. Copy result to user's clipboard
 **/ 
 function encryptSelectedText(pubkey) {  
   if (pubkey == null || pubkey.length == 0) {
     swal("Error", "No public key found for the following ID: " + sender_id, "error");
     return;
   }
+  // prompt the user for their password to decrypt their private key
   swal({
     title: "Password",
     text: "Please provide the password you used to encrypt your private key",
@@ -336,17 +374,22 @@ function encryptSelectedText(pubkey) {
     closeOnConfirm: false,
   },
   function(inputValue){
+    // do nothing if cancel
     if (inputValue === false) {
       return false;
     }
+    // proceed with encryption otherwise
     encryptSubroutine(pubkey, inputValue);
   });
 }
 
+// encryption subroutine separated for readability
 function encryptSubroutine(pubkey, pwd) {
   // get private key for signing
   var enc_prikey_str = localStorage.getItem(EE_PRIVATE);
   var enc_prikey = JSON.parse(enc_prikey_str);
+
+  // attempt to decrypt and report if password is invalid
   var prikey = null;
   try {
     prikey = sjcl.decrypt(pwd, enc_prikey);
@@ -359,17 +402,20 @@ function encryptSubroutine(pubkey, pwd) {
     return;
   }
   
-  //get the sender's ID
+  //get the sender's ID (user's ID)
   var sender_id = localStorage.getItem(EE_USER_ID);
   
+  // sanity check that an ID was supplied when the private key was
   if (sender_id == null || sender_id.length == 0) {
     swal("Error","Cannot locate your ID. Please go to Manage and re-enter your ID, private key and password","error");
     return;
   }
 
+  // generate a random 256 bit AES key to encrypt our message
   var aeskey = sjcl.random.randomWords(8); //8 * 32 == 256 bits
   var aes_key_str = sjcl.codec.base64.fromBits(aeskey);
 
+  // get the selected text
   getSelectedText(function(selectedText) {
     var buf = selectedText.toString();
     if (buf == null || buf.length == 0) {
@@ -377,21 +423,25 @@ function encryptSubroutine(pubkey, pwd) {
       return;
     }
 
+    // set the ecnryption scheme for a 256-bit key
     var params = {};
     params["ks"] = 256; //AES-256 key
-    //params["mode"] = "ctr";
 
+    // perform the encryption; AES-256 CCM mode
+    // NOTE: although CCM mode is designed to provide integrity, we do no rely 
+    // on it for that; essentially, we are just using CCM to provide CTR-mode
+    // level confidentiality (we handle integrity/authenticity later on)
     var result_str = sjcl.encrypt(aeskey, buf, params); //do encryption
     var result_obj = sjcl.json.decode(result_str); //get JSON from returned string
-
     var ciphertext = sjcl.codec.base64.fromBits(result_obj.ct); 
     var iv = sjcl.codec.base64.fromBits(result_obj.iv);
     
-    // get current time (this will help with replay attacks)
+    // get current time (this will prevent replay attacks)
     var timestamp = Date.now();
     var timestamp_str = timestamp.toString();
     
-    //Encrypt timestamp, sender ID (e.g. email), AES key, and IV with RSA using public key of recipient
+    // Encrypt timestamp, sender ID (e.g. email), AES key, and IV with RSA using 
+    // public key of recipient
     var enc_timestamp_str = RSAEncrypt(timestamp_str, pubkey);
     var enc_sender_id = RSAEncrypt(sender_id, pubkey);
     var enc_key = RSAEncrypt(aes_key_str, pubkey); 
@@ -409,7 +459,8 @@ function encryptSubroutine(pubkey, pwd) {
     var message_digest = sjcl.hash.sha256.hash(message);
     var message_digest_str = sjcl.codec.hex.fromBits(message_digest);
     
-    // encrypt the hash with sender's private key to generate a digital signature (integrity, authenticity)
+    // encrypt the hash with sender's private key to generate a digital 
+    // signature (this provides integrity and authenticity in our system)
     var digital_signature = RSASign(message_digest_str, prikey);
         
     // prepend the signature to the message to sign it
@@ -440,7 +491,7 @@ function invalidPassword() {
   swal("Error","The password you entered is invalid","error");
 }
 
-//Puts the public keys into the select list
+// Puts the public keys into the select list when user selects "Encrypt"
 function showPublicKeys() {
   var selectDiv = document.getElementById("invis-select");
   var select = document.getElementById("public-key-select");
@@ -484,17 +535,19 @@ function selectPublicKey() {
   var keyList = JSON.parse(localStorage.getItem(EE_KEYLIST));
   var key = keyList[keyname]; 
 
-  encryptSelectedText(key); //call encryption routine with key name
+  // call the actual encryption routine
+  encryptSelectedText(key);
   closeKeySelect(); //resets the display
 }
 
-//Hids the public key select form
-//Returns the main menu to visible
+// Hides the public key select form
+// Returns the main menu to visible
 function closeKeySelect() {
   document.getElementById("invis-select").style.visibility = "hidden";
   document.getElementById("buttons").style.visibility = "visible";
 }
 
+// registers onclick events
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById("import").onclick = openKeyManagerTab;
   document.getElementById("decrypt").onclick = decryptSelectedText;

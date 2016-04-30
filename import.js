@@ -19,6 +19,8 @@ var EE_TIMELIST = "EE-timeList";
 var EE_PRIVATE = "EE-Private-Key";
 var EE_USER_ID = "EE-User-ID";
 
+// adds an RSA public key and corresponding name/ID to local storage from the 
+// key management page
 function addPublicKey() {
   var keyList = {};
   if (localStorage.getItem(EE_KEYLIST) != null) {
@@ -34,6 +36,9 @@ function addPublicKey() {
   location.reload();
 }
 
+// adds an RSA private key and corresponding name/ID to local storage from the 
+// key management page; private key is encrypted using AES 256 (sjcl library 
+// decrypt routine passes user's password through a PBKDF function)
 function addPrivateKey() {
   var privKey = document.getElementById("privKey").value;
   privKey = privKey.trim();
@@ -45,12 +50,16 @@ function addPrivateKey() {
   //setting AES key size
   var params = {};
   params["ks"] = 256; //AES-256 key
+
+  // encrypt; the password is passed internally though a PBKDF to derive 256 bit 
+  // AES key
   var encKey = sjcl.encrypt(password, privKey, params);
   localStorage.setItem(EE_PRIVATE, JSON.stringify(encKey));
   localStorage.setItem(EE_USER_ID, user_id);
   location.reload();
 }
 
+// remove public key from local storage
 function deletePublicKey() {
   var key = document.getElementById("deleteKey").value;
   var keyList = JSON.parse(localStorage.getItem(EE_KEYLIST));
@@ -60,6 +69,7 @@ function deletePublicKey() {
   location.reload();
 }
 
+// setup
 function init() {
   if (localStorage.getItem(EE_KEYLIST) === null) {
     return;
@@ -100,7 +110,7 @@ function showPrivateInputFields() {
     gKeyType = dPrivateKey;
 }
 
-
+// registers onclick events
 document.addEventListener('DOMContentLoaded', function() {
 	init(); //initialize the page
 	//document.getElementById("import-pub").onclick = showPublicInputFields;  
