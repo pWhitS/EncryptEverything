@@ -17,36 +17,17 @@ HTML for the plugin.
         font-size: 100%;
         background-color: #f0ecec;
       }
-      #status {
-        white-space: pre;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        max-width: 400px;
-      }
       #body {
         height: 350px;
         width: 280px;
         padding: 16px;
       }
-      .login-label {
-        font-weight: bold;
-      }
-      .login-field {
-        position: absolute;
-        width: 80%;
-        font-family: "Times New Roman", Times, sans-serif;
-        font-size: 16px;
-        border: 3px solid #003da5;
-        padding-left: 10px;
-        padding-right: 10px;
-        padding-top: 6px;
-        padding-bottom: 6px;
-      }
 
       #buttons {
         visibility: visible;
         position: absolute;
-        padding-left: 17%;
+        text-align: center;
+        left: 23%;
       }
       .action-buttons {
         width: 4em;
@@ -67,7 +48,6 @@ HTML for the plugin.
         padding:6px 52px;
         text-decoration:none;
         text-shadow:0px 1px 0px #c2352b;
-        text-align: center;
       }
       .action-buttons:hover {
         background-color:#c73d36;
@@ -87,8 +67,8 @@ HTML for the plugin.
       }
 
       #invis-select {
-        margin-top: 3em;
         visibility: hidden;
+        position: relative;
         text-align: center;
       }
       #public-key-select {
@@ -146,15 +126,6 @@ HTML for the plugin.
         <a href="#" id="pubkey-button-cancel" class="action-buttons">Cancel</a><br>
       </div>
       
-
-<!--       <br><br><br> <br><br><br> <br><br><br>
-
-      <label class="login-label">Email:</label><br>
-      <input id="username" class="login-field" type="text">
-      <br><br><br>
-
-      <label class="login-label">Password:</label><br>
-      <input id="password" class="login-field" type="password"> -->
     </div>
   </body>
 </html>
