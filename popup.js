@@ -230,6 +230,14 @@ function decryptSubroutine(pwd) {
     // calculate our own hash directly on the message
     var message = buf.substring(G_RSA_BLOCK_SIZE);
     var calculated_message_digest = sjcl.hash.sha256.hash(message);
+
+    // if digests are not equal, then the message is either not authentic or it 
+    // was modified in transit; if so, we report to the user and end the 
+    // decryption attempt
+    if (!(digestsAreEqual(calculated_message_digest, received_message_digest))) {
+      swal("Error","Message failed integrity/authenticity checks. Could not verify signature of sender.","error");
+      return;
+    }
     
     // decrypt timestamp
     var enc_timestamp_str = buf.substring(G_RSA_BLOCK_SIZE*2, G_RSA_BLOCK_SIZE*3);
@@ -252,14 +260,6 @@ function decryptSubroutine(pwd) {
 
     // update the timestamp to prevent replays
     updateTimestamp(timestamp, sender_id);
-    
-    // if digests are not equal, then the message is either not authentic or it 
-    // was modified in transit; if so, we report to the user and end the 
-    // decryption attempt
-    if (!(digestsAreEqual(calculated_message_digest, received_message_digest))) {
-      swal("Error","Message failed integrity/authenticity checks. Could not verify signature of sender.","error");
-      return;
-    }
     
     //Break up the rest of the pieces of encrypted data from the message blob
     var enc_key = buf.substring(G_RSA_BLOCK_SIZE*3, G_RSA_BLOCK_SIZE*4);
