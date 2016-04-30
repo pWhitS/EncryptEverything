@@ -257,9 +257,6 @@ function decryptSubroutine(pwd) {
       swal("Error","Stale timestamp, possible replay attack","error");
       return;
     }
-
-    // update the timestamp to prevent replays
-    updateTimestamp(timestamp, sender_id);
     
     //Break up the rest of the pieces of encrypted data from the message blob
     var enc_key = buf.substring(G_RSA_BLOCK_SIZE*3, G_RSA_BLOCK_SIZE*4);
@@ -338,6 +335,10 @@ function decryptSubroutine(pwd) {
         invisibleTextArea.style.display = "none";
       }
     });
+    // update the timestamp to prevent replays
+    // we do this at the very end of the encrypt method to ensure that we don't
+    // prematurely update the timestamp if decryption fails at some point
+    updateTimestamp(timestamp, sender_id);
 
   });
 }
